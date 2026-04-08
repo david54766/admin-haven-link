@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Classroom Panda - Brand Design System */
+
+@layer base {
+  :root {
+    /* Brand Colors - from Ms. Jo's website */
+    --brand-turquoise: 174 72% 73%;      /* Main turquoise/aqua background */
+    --brand-green: 78 65% 52%;           /* Lime green cards */
+    --brand-purple: 275 55% 42%;         /* Purple cards */
+    --brand-gold: 45 95% 50%;            /* Gold/yellow cards */
+    --brand-red: 0 85% 50%;              /* Red accents/buttons */
+    --brand-teal: 174 60% 40%;           /* Darker teal for text emphasis */
+    --brand-blue: 200 70% 50%;           /* Sky blue for variety */
+    --brand-yellow: 45 95% 50%;          /* Same as gold */
+    --brand-orange: 25 90% 55%;          /* Warm orange */
+    --brand-pink: 330 70% 55%;           /* Playful pink */
+    --brand-gray: 174 10% 45%;           /* Neutral with teal tint */
+    --brand-coral: 10 80% 60%;           /* Soft coral */
+    --brand-lavender: 260 50% 65%;       /* Light lavender */
+
+    /* Semantic tokens - Light mode */
+    --background: 174 40% 97%;
+    --foreground: 174 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 174 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 174 30% 15%;
+
+    --primary: 174 60% 40%;               /* Teal as primary */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 275 55% 42%;             /* Purple as secondary */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 174 20% 94%;
+    --muted-foreground: 174 15% 40%;
+
+    --accent: 45 95% 50%;                 /* Gold as accent */
+    --accent-foreground: 45 30% 12%;
+
+    --destructive: 0 85% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 174 15% 88%;
+    --input: 174 15% 88%;
+    --ring: 174 60% 40%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 174 30% 96%;
+    --sidebar-foreground: 174 30% 15%;
+    --sidebar-primary: 174 60% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 174 20% 92%;
+    --sidebar-accent-foreground: 174 30% 15%;
+    --sidebar-border: 174 15% 90%;
+    --sidebar-ring: 174 60% 40%;
+  }
+
+  .dark {
+    --background: 174 20% 7%;
+    --foreground: 174 10% 92%;
+
+    --card: 174 15% 10%;
+    --card-foreground: 174 10% 92%;
+
+    --popover: 174 15% 10%;
+    --popover-foreground: 174 10% 92%;
+
+    --primary: 174 55% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 275 50% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 174 12% 16%;
+    --muted-foreground: 174 10% 55%;
+
+    --accent: 45 85% 45%;
+    --accent-foreground: 45 20% 10%;
+
+    --destructive: 0 75% 45%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 174 12% 16%;
+    --input: 174 12% 16%;
+    --ring: 174 55% 45%;
+
+    --sidebar-background: 174 20% 5%;
+    --sidebar-foreground: 174 10% 92%;
+    --sidebar-primary: 174 55% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 174 12% 12%;
+    --sidebar-accent-foreground: 174 10% 92%;
+    --sidebar-border: 174 12% 14%;
+    --sidebar-ring: 174 55% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

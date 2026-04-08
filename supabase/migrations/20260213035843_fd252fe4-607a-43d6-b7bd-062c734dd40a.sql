@@ -1,0 +1,1 @@
+ALTER TABLE public.checklist_items ADD COLUMN section text;

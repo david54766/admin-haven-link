@@ -1,0 +1,1 @@
+ALTER TABLE public.staff_certificates ADD COLUMN hours numeric NULL;

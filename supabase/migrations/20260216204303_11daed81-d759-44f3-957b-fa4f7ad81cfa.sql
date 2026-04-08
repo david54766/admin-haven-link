@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS prevent_role_escalation ON public.user_roles;
