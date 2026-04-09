@@ -1,4 +1,4 @@
-export type AppRole = 'staff' | 'director' | 'super_admin';
+export type AppRole = 'staff' | 'director' | 'super_admin' | 'platform_admin';
 export type UserStatus = 'pending' | 'approved' | 'rejected' | 'disabled' | 'inactive';
 export type HomeworkReviewStatus = 'pending' | 'approved' | 'needs_revision' | 'rejected';
 

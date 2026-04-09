@@ -13,6 +13,7 @@ interface AuthContextType {
   isDirector: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isPlatformAdmin: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -116,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isDirector = roles.includes('director');
   const isAdmin = roles.includes('super_admin') || roles.includes('director');
   const isSuperAdmin = roles.includes('super_admin');
+  const isPlatformAdmin = roles.includes('platform_admin');
 
   return (
     <AuthContext.Provider
@@ -129,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isDirector,
         isAdmin,
         isSuperAdmin,
+        isPlatformAdmin,
         signOut,
         refreshProfile,
       }}

@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
   requireApproval?: boolean;
   requireAdmin?: boolean;
   requireSuperAdmin?: boolean;
+  requirePlatformAdmin?: boolean;
 }
 
 export function ProtectedRoute({
@@ -14,8 +15,9 @@ export function ProtectedRoute({
   requireApproval = true,
   requireAdmin = false,
   requireSuperAdmin = false,
+  requirePlatformAdmin = false,
 }: ProtectedRouteProps) {
-  const { user, profile, isLoading, isApproved, isAdmin, isSuperAdmin } = useAuth();
+  const { user, profile, isLoading, isApproved, isAdmin, isSuperAdmin, isPlatformAdmin } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -50,7 +52,11 @@ export function ProtectedRoute({
     return <Navigate to="/disabled" replace />;
   }
 
-  if (requireApproval && !isApproved) {
+  if (requirePlatformAdmin && !isPlatformAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (requireApproval && !isApproved && !isPlatformAdmin) {
     return <Navigate to="/pending" replace />;
   }
 
