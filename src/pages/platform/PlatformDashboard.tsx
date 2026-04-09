@@ -169,7 +169,7 @@ export default function PlatformDashboard() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Active</CardDescription>
-              <CardTitle className="text-3xl text-green-600">{tenants.filter(t => t.is_active).length}</CardTitle>
+              <CardTitle className="text-3xl text-primary">{tenants.filter(t => t.is_active).length}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
