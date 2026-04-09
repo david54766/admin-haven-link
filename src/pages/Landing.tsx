@@ -62,7 +62,7 @@ export default function Landing() {
             <span className="text-sm font-medium">A Dedicated Portal for Every Organization</span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-foreground">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl md:text-6xl text-foreground">
             The Training Platform Built for
             <span className="block mt-2 text-primary">Childcare Organizations</span>
           </h1>
