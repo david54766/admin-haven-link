@@ -2531,6 +2531,26 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      list_active_tenants: {
+        Args: never
+        Returns: {
+          branding: Json
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+        }[]
+      }
+      resolve_tenant_by_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          branding: Json
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+        }[]
+      }
       user_in_tenant: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
