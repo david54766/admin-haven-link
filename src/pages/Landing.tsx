@@ -84,8 +84,8 @@ export default function Landing() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-muted/30">
-        <div className="container">
+      <section className="py-14 sm:py-20 bg-muted/30">
+        <div className="container px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-foreground">How It Works</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
@@ -109,8 +109,8 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section className="py-20">
-        <div className="container">
+      <section className="py-14 sm:py-20">
+        <div className="container px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground">Everything Your Center Needs</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
@@ -135,9 +135,9 @@ export default function Landing() {
       </section>
 
       {/* Value Props */}
-      <section className="py-16 bg-muted/30">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="py-12 sm:py-16 bg-muted/30">
+        <div className="container px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {valueProps.map((vp) => (
               <div key={vp.title} className="flex items-start gap-4">
                 <div className="h-12 w-12 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -154,9 +154,9 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="py-24">
-        <div className="container">
-          <div className="relative bg-card rounded-3xl p-12 shadow-xl border overflow-hidden">
+      <section className="py-14 sm:py-24">
+        <div className="container px-4">
+          <div className="relative bg-card rounded-2xl sm:rounded-3xl p-8 sm:p-12 shadow-xl border overflow-hidden">
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-secondary/10 rounded-full blur-3xl" />
 
