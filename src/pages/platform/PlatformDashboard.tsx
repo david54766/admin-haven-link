@@ -62,10 +62,12 @@ export default function PlatformDashboard() {
         countMap[p.tenant_id] = (countMap[p.tenant_id] || 0) + 1;
       });
 
-      const tenantsWithCounts = (data || []).map((t: any) => ({
-        ...t,
-        user_count: countMap[t.id] || 0,
-      }));
+      const tenantsWithCounts = (data || [])
+        .filter((t: any) => t.id !== '00000000-0000-0000-0000-000000000001')
+        .map((t: any) => ({
+          ...t,
+          user_count: countMap[t.id] || 0,
+        }));
 
       setTenants(tenantsWithCounts);
     } catch (err: any) {
