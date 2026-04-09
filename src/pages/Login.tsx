@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import logo from '@/assets/logo.png';
+import { GraduationCap } from 'lucide-react';
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 2 * 60 * 1000; // 2 minutes
@@ -114,9 +114,10 @@ export default function Login() {
         .eq('user_id', authData.user.id);
 
       const roles = rolesData?.map((r: { role: string }) => r.role) || [];
+      const isPlatformAdmin = roles.includes('platform_admin');
       const isAdmin = roles.includes('super_admin') || roles.includes('director') || roles.includes('admin');
 
-      navigate(isAdmin ? '/admin' : from, { replace: true });
+      navigate(isPlatformAdmin ? '/platform' : isAdmin ? '/admin' : from, { replace: true });
     } catch (error: any) {
       console.error('Login error:', error);
       recordFailedAttempt();
@@ -159,8 +160,11 @@ export default function Login() {
         <div className="mx-auto max-w-md">
           <Card className="border-2 shadow-xl">
             <CardHeader className="text-center pb-2">
-              <img src={logo} alt="Unique Kids Child Care Center" className="mx-auto h-20 w-auto mb-4" />
-              <CardTitle className="text-2xl bg-gradient-to-r from-brand-red via-brand-purple to-brand-blue bg-clip-text text-transparent">
+              <div className="mx-auto flex items-center gap-2 mb-4">
+                <GraduationCap className="h-8 w-8 text-primary" />
+                <span className="text-xl font-bold text-primary">Childcare Staff Training</span>
+              </div>
+              <CardTitle className="text-2xl text-primary">
                 Staff Login
               </CardTitle>
               <CardDescription>
