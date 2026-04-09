@@ -11,11 +11,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { GraduationCap } from 'lucide-react';
+import pandaLogo from '@/assets/classroom-panda-logo.png';
 
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 2 * 60 * 1000; // 2 minutes
-const ATTEMPT_WINDOW_MS = 5 * 60 * 1000; // 5 minute window
+const LOCKOUT_DURATION_MS = 2 * 60 * 1000;
+const ATTEMPT_WINDOW_MS = 5 * 60 * 1000;
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -77,10 +77,7 @@ export default function Login() {
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -101,11 +98,8 @@ export default function Login() {
         password: data.password,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Reset attempts on success
       failedAttemptsRef.current = [];
 
       const { data: rolesData } = await supabase
@@ -140,17 +134,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Decorative background */}
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Decorative background matching landing */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-brand-yellow/20 rounded-full blur-3xl" />
-        <div className="absolute top-40 right-20 w-48 h-48 bg-brand-blue/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-1/4 w-36 h-36 bg-brand-purple/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-40 right-1/3 w-32 h-32 bg-brand-red/15 rounded-full blur-3xl" />
+        <div className="absolute top-10 left-10 w-40 h-40 bg-[hsl(330,70%,85%)] rounded-full blur-3xl opacity-40" />
+        <div className="absolute top-40 right-10 w-48 h-48 bg-[hsl(280,55%,85%)] rounded-full blur-3xl opacity-40" />
+        <div className="absolute bottom-20 left-1/4 w-36 h-36 bg-[hsl(190,70%,85%)] rounded-full blur-3xl opacity-40" />
+        <div className="absolute bottom-40 right-1/3 w-32 h-32 bg-[hsl(330,60%,85%)] rounded-full blur-3xl opacity-30" />
       </div>
 
-      <div className="container py-8">
-        <Button variant="ghost" asChild className="mb-6 hover:bg-accent">
+      <div className="container py-8 px-4">
+        <Button variant="ghost" asChild className="mb-6 text-[hsl(280,40%,40%)] hover:bg-[hsl(280,60%,95%)]">
           <Link to="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
@@ -158,16 +152,18 @@ export default function Login() {
         </Button>
 
         <div className="mx-auto max-w-md">
-          <Card className="border-2 shadow-xl">
+          <Card className="border border-[hsl(280,30%,90%)] shadow-xl bg-white/90 backdrop-blur-sm">
             <CardHeader className="text-center pb-2">
-              <div className="mx-auto flex items-center gap-2 mb-4">
-                <GraduationCap className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold text-primary">Childcare Staff Training</span>
+              <div className="mx-auto flex items-center gap-2.5 mb-4">
+                <img src={pandaLogo} alt="Panda Staff Training" className="h-10 w-10" />
+                <span className="text-xl font-bold bg-gradient-to-r from-[hsl(330,70%,65%)] to-[hsl(280,55%,60%)] bg-clip-text text-transparent">
+                  Panda Staff Training
+                </span>
               </div>
-              <CardTitle className="text-2xl text-primary">
+              <CardTitle className="text-2xl text-[hsl(280,30%,20%)]">
                 Staff Login
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-[hsl(280,15%,50%)]">
                 Sign in to access the training portal
               </CardDescription>
             </CardHeader>
@@ -187,13 +183,13 @@ export default function Login() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel className="text-[hsl(280,30%,25%)]">Email Address</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="email" 
-                            placeholder="john@example.com" 
-                            className="border-2 focus-visible:ring-primary"
-                            {...field} 
+                          <Input
+                            type="email"
+                            placeholder="john@example.com"
+                            className="border-[hsl(280,30%,85%)] focus-visible:ring-[hsl(280,55%,60%)]"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -206,13 +202,13 @@ export default function Login() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel className="text-[hsl(280,30%,25%)]">Password</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            className="border-2 focus-visible:ring-primary"
-                            {...field} 
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            className="border-[hsl(280,30%,85%)] focus-visible:ring-[hsl(280,55%,60%)]"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -220,9 +216,9 @@ export default function Login() {
                     )}
                   />
 
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25" 
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-[hsl(330,70%,65%)] to-[hsl(280,55%,60%)] hover:from-[hsl(330,70%,58%)] hover:to-[hsl(280,55%,53%)] text-white shadow-lg shadow-[hsl(280,50%,60%)]/25 border-0"
                     disabled={isSubmitting || isLockedOut()}
                   >
                     {isSubmitting ? (
@@ -238,20 +234,20 @@ export default function Login() {
               </Form>
 
               <div className="mt-4 text-center">
-                <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary hover:underline">
+                <Link to="/forgot-password" className="text-sm text-[hsl(280,15%,50%)] hover:text-[hsl(280,55%,55%)] hover:underline">
                   Forgot your password?
                 </Link>
               </div>
 
-              <p className="mt-4 text-center text-sm text-muted-foreground">
+              <p className="mt-4 text-center text-sm text-[hsl(280,15%,50%)]">
                 Already a staff member?{' '}
-                <Link to="/register" className="font-medium text-primary hover:text-primary/80 hover:underline">
+                <Link to="/register" className="font-medium text-[hsl(280,55%,55%)] hover:text-[hsl(280,55%,45%)] hover:underline">
                   Staff Register
                 </Link>
               </p>
-              <p className="mt-2 text-center text-sm text-muted-foreground">
+              <p className="mt-2 text-center text-sm text-[hsl(280,15%,50%)]">
                 New to childcare?{' '}
-                <Link to="/apply" className="font-medium text-secondary hover:text-secondary/80 hover:underline">
+                <Link to="/apply" className="font-medium text-[hsl(330,70%,60%)] hover:text-[hsl(330,70%,50%)] hover:underline">
                   Apply to join
                 </Link>
               </p>
