@@ -47,25 +47,19 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         // const subdomain = hostname.split('.')[0];
         // if (subdomain !== 'www' && subdomain !== 'localhost') slug = subdomain;
 
+        // Use security-definer RPC to resolve tenant without exposing sensitive fields
         const { data, error } = await supabase
-          .from('tenants')
-          .select('*')
-          .eq('slug', slug)
-          .eq('is_active', true)
-          .maybeSingle();
+          .rpc('resolve_tenant_by_slug', { p_slug: slug });
 
-        if (data) {
-          setTenant(data as Tenant);
+        if (data && data.length > 0) {
+          setTenant(data[0] as Tenant);
         } else {
           // Fallback to default tenant
           const { data: defaultTenant } = await supabase
-            .from('tenants')
-            .select('*')
-            .eq('id', DEFAULT_TENANT_ID)
-            .single();
+            .rpc('resolve_tenant_by_slug', { p_slug: 'default' });
           
-          if (defaultTenant) {
-            setTenant(defaultTenant as Tenant);
+          if (defaultTenant && defaultTenant.length > 0) {
+            setTenant(defaultTenant[0] as Tenant);
           }
         }
       } catch (error) {
