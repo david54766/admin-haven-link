@@ -137,12 +137,11 @@ export default function PlatformDashboard() {
     if (!deleteTarget || deleteConfirmText !== deleteTarget.name) return;
     setDeleting(true);
     try {
-      const response = await supabase.functions.invoke('delete-tenant', {
-        body: { tenant_id: deleteTarget.id },
-      });
-      if (response.error) throw new Error(response.error.message);
-      const data = response.data;
-      if (data?.error) throw new Error(data.error);
+      const { error } = await supabase
+        .from('tenants')
+        .delete()
+        .eq('id', deleteTarget.id);
+      if (error) throw error;
       toast({ title: 'Tenant deleted', description: `${deleteTarget.name} has been permanently deleted.` });
       setDeleteTarget(null);
       setDeleteStep(1);
