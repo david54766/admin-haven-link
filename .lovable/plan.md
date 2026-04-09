@@ -1,38 +1,25 @@
 
 
-# Resend API Key, Platform Admin Account, and Password Reset Setup
+# Landing Page: SaaS Product Pitch
 
-## Overview
-Three tasks: (1) prompt you to enter the Resend API key, (2) create a platform_admin user account via an edge function so you can log in to `/platform`, (3) update the ForgotPassword and ResetPassword pages to remove the old "Classroom Panda" logo import and use clean, branded "Childcare Staff Training" styling instead.
+## Summary
+Rewrite `src/pages/Landing.tsx` to position the product as a SaaS platform where each childcare organization gets their own dedicated training portal instance.
 
-## Step 1: Update Resend API Key
-- Use the secrets tool to prompt you to enter your Resend API key value.
+## Changes
 
-## Step 2: Create Platform Admin Account
-- Create an edge function `seed-platform-admin` that:
-  - Creates a user via `auth.admin.createUser` with a specified email/password
-  - Creates a profile with `status: 'approved'` and no tenant_id
-  - Assigns `platform_admin` role in `user_roles`
-- Run it once to create your account (e.g., your email + a temp password)
-- After creation, you log in at `/login` and get redirected to `/platform`
+**Rewrite `src/pages/Landing.tsx`**
 
-**Credentials** (you'll set these when I ask): I'll ask you for the email and password you want.
+- **Header**: GraduationCap icon + "Childcare Staff Training" + "Log In" button + "Request a Demo" CTA
+- **Hero**: "The Training Platform Built for Childcare Organizations" — emphasize each center gets its own branded portal. Two CTAs: "Request a Demo" (mailto:support@childcarestafftraining.com) and "Log In" (link to /login)
+- **How It Works** (3 steps):
+  1. "We Set Up Your Portal" — dedicated instance with your branding
+  2. "Add Your Training Content" — videos, quizzes, documents, checklists
+  3. "Onboard & Track Staff" — invite staff, monitor progress, stay compliant
+- **Features Grid** (6 cards, reframed as product capabilities):
+  - Training Tracks, Compliance Management, Certificates & Hours, Daily Checklists, Staff Calendar, Reports & Analytics
+- **Trust/Value Props row**: "Own Branded Portal", "No IT Required", "Compliance Ready"
+- **CTA Section**: "Get Your Center's Training Portal" with demo contact button
+- **Footer**: © 2026 childcarestafftraining.com
 
-## Step 3: Test Welcome Email
-- After Resend key is set and platform admin is created, test creating a tenant from the Platform Dashboard — the `create-tenant-account` edge function already sends a welcome email via Resend.
-
-## Step 4: Custom Password Reset Pages
-Both `ForgotPassword.tsx` and `ResetPassword.tsx` currently import `logo from '@/assets/logo.png'` (old Classroom Panda branding). Update both to:
-- Remove the logo import
-- Replace the logo `<img>` with a text-based header using the GraduationCap icon + "Childcare Staff Training" (matching the Landing page style)
-- Keep the gradient background blobs and card layout
-- Remove `brand-red`/`brand-purple`/`brand-blue` gradient text and use `text-primary` instead
-
-## Files Changed
-
-| Action | File |
-|--------|------|
-| Create | `supabase/functions/seed-platform-admin/index.ts` |
-| Modify | `src/pages/ForgotPassword.tsx` — remove logo, use text branding |
-| Modify | `src/pages/ResetPassword.tsx` — remove logo, use text branding |
+No other files changed.
 
