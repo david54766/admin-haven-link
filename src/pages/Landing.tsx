@@ -49,7 +49,7 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-14 sm:py-24 overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute top-40 right-20 w-40 h-40 bg-secondary/10 rounded-full blur-3xl" />
