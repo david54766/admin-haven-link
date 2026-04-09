@@ -160,8 +160,11 @@ export default function Login() {
         <div className="mx-auto max-w-md">
           <Card className="border-2 shadow-xl">
             <CardHeader className="text-center pb-2">
-              <img src={logo} alt="Unique Kids Child Care Center" className="mx-auto h-20 w-auto mb-4" />
-              <CardTitle className="text-2xl bg-gradient-to-r from-brand-red via-brand-purple to-brand-blue bg-clip-text text-transparent">
+              <div className="mx-auto flex items-center gap-2 mb-4">
+                <GraduationCap className="h-8 w-8 text-primary" />
+                <span className="text-xl font-bold text-primary">Childcare Staff Training</span>
+              </div>
+              <CardTitle className="text-2xl text-primary">
                 Staff Login
               </CardTitle>
               <CardDescription>
