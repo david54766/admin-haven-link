@@ -114,9 +114,10 @@ export default function Login() {
         .eq('user_id', authData.user.id);
 
       const roles = rolesData?.map((r: { role: string }) => r.role) || [];
+      const isPlatformAdmin = roles.includes('platform_admin');
       const isAdmin = roles.includes('super_admin') || roles.includes('director') || roles.includes('admin');
 
-      navigate(isAdmin ? '/admin' : from, { replace: true });
+      navigate(isPlatformAdmin ? '/platform' : isAdmin ? '/admin' : from, { replace: true });
     } catch (error: any) {
       console.error('Login error:', error);
       recordFailedAttempt();
