@@ -1,15 +1,27 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, BookOpen, Award, ClipboardCheck, Calendar, BarChart3, Shield, Users } from 'lucide-react';
+import { GraduationCap, BookOpen, Award, ClipboardCheck, Calendar, BarChart3, Shield, Users, Building2, Upload, UserPlus, CheckCircle2, Paintbrush, Monitor } from 'lucide-react';
 
 const features = [
-  { icon: BookOpen, title: 'Training Tracks', description: 'Structured training paths with videos, quizzes, and hands-on assignments.' },
-  { icon: ClipboardCheck, title: 'Compliance Documents', description: 'Track staff documents, licenses, and ensure regulatory compliance.' },
-  { icon: Award, title: 'Certificates & Hours', description: 'Auto-generate certificates on completion and track professional development hours.' },
-  { icon: ClipboardCheck, title: 'Daily Checklists', description: 'Customizable daily checklists with automated admin notifications.' },
-  { icon: Calendar, title: 'Staff Calendar', description: 'Shared calendar for events, deadlines, and important dates.' },
-  { icon: BarChart3, title: 'Reports & Analytics', description: 'Comprehensive dashboards tracking staff progress and engagement.' },
+  { icon: BookOpen, title: 'Training Tracks', description: 'Build structured training paths with videos, quizzes, lessons, and hands-on assignments for every role.' },
+  { icon: Shield, title: 'Compliance Management', description: 'Track staff documents, licenses, and certifications to stay ahead of regulatory requirements.' },
+  { icon: Award, title: 'Certificates & Hours', description: 'Auto-generate certificates on course completion and log professional development hours effortlessly.' },
+  { icon: ClipboardCheck, title: 'Daily Checklists', description: 'Create custom daily checklists with automated notifications so nothing gets missed.' },
+  { icon: Calendar, title: 'Staff Calendar', description: 'A shared calendar for training deadlines, events, and important dates across your organization.' },
+  { icon: BarChart3, title: 'Reports & Analytics', description: 'Real-time dashboards showing staff progress, compliance status, and engagement metrics.' },
+];
+
+const steps = [
+  { icon: Building2, step: '01', title: 'We Set Up Your Portal', description: 'Get a dedicated training portal for your organization — branded with your logo, colors, and identity.' },
+  { icon: Upload, step: '02', title: 'Add Your Training Content', description: 'Upload videos, create quizzes, add documents, build checklists — everything your staff needs to succeed.' },
+  { icon: UserPlus, step: '03', title: 'Onboard & Track Staff', description: 'Invite your team, assign training tracks, monitor progress, and ensure compliance — all from one dashboard.' },
+];
+
+const valueProps = [
+  { icon: Paintbrush, title: 'Your Own Branded Portal', description: 'Each organization gets a fully isolated, branded training environment.' },
+  { icon: Monitor, title: 'No IT Required', description: 'We handle setup, hosting, and maintenance. You focus on your staff.' },
+  { icon: CheckCircle2, title: 'Compliance Ready', description: 'Built-in document tracking, certificate expiry alerts, and audit-ready reports.' },
 ];
 
 export default function Landing() {
@@ -24,10 +36,10 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
-              <Link to="/login">Staff Login</Link>
+              <Link to="/login">Log In</Link>
             </Button>
             <Button asChild>
-              <Link to="/login">Get Started</Link>
+              <a href="mailto:support@childcarestafftraining.com">Request a Demo</a>
             </Button>
           </div>
         </div>
@@ -43,38 +55,63 @@ export default function Landing() {
 
         <div className="container text-center relative">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
-            <Shield className="h-4 w-4" />
-            <span className="text-sm font-medium">Training Management for Childcare Centers</span>
+            <Building2 className="h-4 w-4" />
+            <span className="text-sm font-medium">A Dedicated Portal for Every Organization</span>
           </div>
 
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-foreground">
-            Simplify Staff Training &
-            <span className="block mt-2 text-primary">Compliance Tracking</span>
+            The Training Platform Built for
+            <span className="block mt-2 text-primary">Childcare Organizations</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            A comprehensive platform designed for childcare organizations to manage staff training,
-            track compliance, issue certificates, and maintain professional development records.
+            Give your center its own branded training portal — onboard staff faster,
+            track compliance automatically, and issue certificates in minutes. No IT required.
           </p>
 
           <div className="mt-10 flex justify-center gap-4 flex-wrap">
             <Button size="lg" className="text-lg px-8" asChild>
-              <Link to="/login">Staff Portal</Link>
+              <a href="mailto:support@childcarestafftraining.com">Request a Demo</a>
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8" asChild>
-              <a href="mailto:support@childcarestafftraining.com">Contact Us</a>
+              <Link to="/login">Existing Customer? Log In</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* How It Works */}
       <section className="py-20 bg-muted/30">
+        <div className="container">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-bold text-foreground">How It Works</h2>
+            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
+              Get your organization's training portal up and running in three simple steps.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {steps.map((s) => (
+              <div key={s.step} className="text-center">
+                <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                  <s.icon className="h-8 w-8 text-primary" />
+                </div>
+                <div className="text-sm font-bold text-primary mb-2">STEP {s.step}</div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">{s.title}</h3>
+                <p className="text-muted-foreground">{s.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-20">
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground">Everything Your Center Needs</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              From onboarding new staff to tracking ongoing professional development — all in one platform.
+              A complete training management system — from onboarding new hires to tracking ongoing professional development.
             </p>
           </div>
 
@@ -94,6 +131,25 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Value Props */}
+      <section className="py-16 bg-muted/30">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {valueProps.map((vp) => (
+              <div key={vp.title} className="flex items-start gap-4">
+                <div className="h-12 w-12 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <vp.icon className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">{vp.title}</h3>
+                  <p className="text-sm text-muted-foreground">{vp.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24">
         <div className="container">
@@ -106,13 +162,14 @@ export default function Landing() {
                 <Users className="h-6 w-6 text-primary" />
               </div>
               <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-                Ready to Streamline Your Training?
+                Get Your Center's Training Portal
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-                Contact us to set up your organization on the platform. We'll get your team up and running quickly.
+                Join childcare organizations already using our platform to simplify staff training and compliance.
+                We'll have your portal ready in no time.
               </p>
               <Button size="lg" className="mt-8 text-lg px-10" asChild>
-                <a href="mailto:support@childcarestafftraining.com">Get in Touch</a>
+                <a href="mailto:support@childcarestafftraining.com">Request a Demo</a>
               </Button>
             </div>
           </div>
