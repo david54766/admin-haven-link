@@ -651,11 +651,7 @@ export default function AdminUsers() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => {
-                                setDeleteTarget(user);
-                                setDeleteConfirmText('');
-                                setIsDeleteDialogOpen(true);
-                              }}
+                              onClick={() => openDeleteDialog(user)}
                               title="Delete user"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
@@ -932,47 +928,73 @@ export default function AdminUsers() {
           </DialogContent>
         </Dialog>
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirmText(''); setDeleteStep(1); } setIsDeleteDialogOpen(open); }}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Permanently Delete User</AlertDialogTitle>
-              <AlertDialogDescription className="space-y-3">
-                <p>
-                  You are about to permanently delete <strong>{deleteTarget?.full_name}</strong> ({deleteTarget?.email}).
-                </p>
-                <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-                  <strong>⚠️ Warning:</strong> This action is irreversible. All data associated with this user will be permanently lost, including training progress, certificates, submissions, reflections, documents, and hours logs.
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <Trash2 className="h-5 w-5" />
+                {deleteStep === 1 ? 'Delete User?' : 'Final Confirmation'}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3">
+                  {deleteStep === 1 ? (
+                    <>
+                      <p>
+                        You are about to permanently delete <strong>{deleteTarget?.full_name}</strong> ({deleteTarget?.email}).
+                      </p>
+                      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                        <strong>⚠️ Warning:</strong> This will permanently remove all data associated with this user including training progress, certificates, submissions, reflections, documents, and hours logs.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p>This action is <strong>IRREVERSIBLE</strong>. Type the user's full name to confirm.</p>
+                      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                        Type <strong>"{deleteTarget?.full_name}"</strong> below to confirm permanent deletion.
+                      </div>
+                    </>
+                  )}
                 </div>
-                <p className="text-sm">
-                  To confirm, type <strong>delete</strong> below:
-                </p>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <Input
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder='Type "delete" to confirm'
-              className="mt-2"
-            />
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => { setDeleteTarget(null); setDeleteConfirmText(''); }}>
-                Cancel
-              </AlertDialogCancel>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteUser}
-                disabled={deleteConfirmText !== 'delete' || isDeleting}
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  'Delete User Permanently'
-                )}
-              </Button>
-            </AlertDialogFooter>
+            {deleteStep === 1 ? (
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => { setDeleteTarget(null); setDeleteConfirmText(''); setDeleteStep(1); }}>
+                  Cancel
+                </AlertDialogCancel>
+                <Button variant="destructive" onClick={() => setDeleteStep(2)}>
+                  Yes, I want to delete
+                </Button>
+              </AlertDialogFooter>
+            ) : (
+              <>
+                <Input
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={deleteTarget?.full_name}
+                  className="border-destructive"
+                />
+                <AlertDialogFooter>
+                  <Button variant="outline" onClick={() => setDeleteStep(1)}>
+                    Back
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteUser}
+                    disabled={deleteConfirmText !== deleteTarget?.full_name || isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete Permanently'
+                    )}
+                  </Button>
+                </AlertDialogFooter>
+              </>
+            )}
           </AlertDialogContent>
         </AlertDialog>
       </div>
