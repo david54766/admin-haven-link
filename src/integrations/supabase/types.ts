@@ -2088,32 +2088,44 @@ export type Database = {
       tenants: {
         Row: {
           branding: Json
+          contact_email: string | null
+          contact_name: string | null
           created_at: string
           domain: string | null
           id: string
           is_active: boolean
+          max_users: number | null
           name: string
           slug: string
+          suspended_at: string | null
           updated_at: string
         }
         Insert: {
           branding?: Json
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
           domain?: string | null
           id?: string
           is_active?: boolean
+          max_users?: number | null
           name: string
           slug: string
+          suspended_at?: string | null
           updated_at?: string
         }
         Update: {
           branding?: Json
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
           domain?: string | null
           id?: string
           is_active?: boolean
+          max_users?: number | null
           name?: string
           slug?: string
+          suspended_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2520,7 +2532,12 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "staff" | "director" | "admin" | "super_admin"
+      app_role:
+        | "staff"
+        | "director"
+        | "admin"
+        | "super_admin"
+        | "platform_admin"
       user_status: "pending" | "approved" | "rejected" | "disabled" | "inactive"
     }
     CompositeTypes: {
@@ -2649,7 +2666,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["staff", "director", "admin", "super_admin"],
+      app_role: ["staff", "director", "admin", "super_admin", "platform_admin"],
       user_status: ["pending", "approved", "rejected", "disabled", "inactive"],
     },
   },
