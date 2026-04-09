@@ -32,6 +32,13 @@ export function ProtectedRoute({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Platform admins bypass profile/status checks
+  if (isPlatformAdmin) {
+    if (requirePlatformAdmin || !requireAdmin) {
+      return <>{children}</>;
+    }
+  }
+
   if (!profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
