@@ -207,9 +207,14 @@ export default function Landing() {
               Classroom Panda
             </span>
           </div>
-          <p className="text-sm text-[hsl(280,15%,55%)] text-center">
-            &copy; {new Date().getFullYear()} Classroom Panda. All rights reserved.
-          </p>
+          <div className="flex items-center gap-4">
+            <a href="https://www.youtube.com/watch?v=Teciu711Ii0" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-[hsl(280,40%,40%)] hover:text-[hsl(330,70%,65%)] transition-colors">
+              📺 Training Video
+            </a>
+            <p className="text-sm text-[hsl(280,15%,55%)]">
+              &copy; {new Date().getFullYear()} Classroom Panda. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
