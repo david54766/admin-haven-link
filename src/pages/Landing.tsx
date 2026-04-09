@@ -29,17 +29,20 @@ export default function Landing() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-7 w-7 text-primary" />
-            <span className="text-lg font-bold text-foreground">Childcare Staff Training</span>
+        <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7 text-primary shrink-0" />
+            <span className="text-sm sm:text-lg font-bold text-foreground truncate">Childcare Staff Training</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
               <Link to="/login">Log In</Link>
             </Button>
-            <Button asChild>
-              <a href="mailto:support@childcarestafftraining.com">Request a Demo</a>
+            <Button size="sm" asChild>
+              <a href="mailto:support@childcarestafftraining.com" className="text-xs sm:text-sm">Demo</a>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="sm:hidden">
+              <Link to="/login">Log In</Link>
             </Button>
           </div>
         </div>
