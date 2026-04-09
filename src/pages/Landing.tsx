@@ -72,7 +72,7 @@ export default function Landing() {
             track compliance automatically, and issue certificates in minutes. No IT required.
           </p>
 
-          <div className="mt-10 flex justify-center gap-4 flex-wrap">
+          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
             <Button size="lg" className="text-lg px-8" asChild>
               <a href="mailto:support@childcarestafftraining.com">Request a Demo</a>
             </Button>
