@@ -126,7 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
     const recipientEmails = recipients.map(r => r.email);
 
     const emailResponse = await resend.emails.send({
-      from: `${branding.business_name} <noreply@msjoschildcare.com>`,
+      from: `${branding.business_name} <noreply@childcarestafftraining.com>`,
       to: recipientEmails,
       subject: `New Staff Application: ${applicantName}`,
       html: wrapEmail(branding, bodyHtml),

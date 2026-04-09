@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
 
     const branding = await fetchBranding(adminClient);
     const brandColor = hslToHex(branding.primary_color);
-    const loginUrl = 'https://msjoschildcare.com';
+    const loginUrl = 'https://childcarestafftraining.com';
 
     const bodyHtml = `
       <h1 style="color: #333; margin-top: 0; font-size: 24px;">You're Approved! 🎉</h1>
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
     await resend.emails.send({
-      from: `${branding.business_name} <noreply@msjoschildcare.com>`,
+      from: `${branding.business_name} <noreply@childcarestafftraining.com>`,
       to: [email],
       subject: `You're Approved! — ${branding.business_name}`,
       html: wrapEmail(branding, bodyHtml),

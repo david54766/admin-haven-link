@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
     const emailResult = await resend.emails.send({
-      from: `${branding.business_name} <noreply@msjoschildcare.com>`,
+      from: `${branding.business_name} <noreply@childcarestafftraining.com>`,
       to: [email],
       subject: `Password Reset — ${branding.business_name}`,
       html: wrapEmail(branding, bodyHtml),

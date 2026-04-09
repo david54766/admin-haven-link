@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
       // Use BCC for privacy — send to first, bcc rest
       const [primary, ...bcc] = batch;
       await resend.emails.send({
-        from: `${branding.business_name} <noreply@msjoschildcare.com>`,
+        from: `${branding.business_name} <noreply@childcarestafftraining.com>`,
         to: [primary],
         bcc: bcc.length > 0 ? bcc : undefined,
         subject: `${priorityLabel ? priorityLabel + ' — ' : ''}${title} — ${branding.business_name}`,

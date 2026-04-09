@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
           centerName = centerData?.name || '';
         }
 
-        const loginUrl = 'https://msjoschildcare.com';
+        const loginUrl = 'https://childcarestafftraining.com';
         const brandColor = hslToHex(branding.primary_color);
 
         const bodyHtml = `
@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
         `;
 
         await resend.emails.send({
-          from: `${branding.business_name} <noreply@msjoschildcare.com>`,
+          from: `${branding.business_name} <noreply@childcarestafftraining.com>`,
           to: [email],
           subject: `Welcome to ${branding.business_name} — Your Account is Ready`,
           html: wrapEmail(branding, bodyHtml),

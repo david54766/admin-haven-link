@@ -96,7 +96,7 @@ async function sendEmail(to: string[], subject: string, html: string, fromName: 
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: `${fromName} <noreply@msjoschildcare.com>`,
+      from: `${fromName} <noreply@childcarestafftraining.com>`,
       to, subject, html,
     }),
   });
