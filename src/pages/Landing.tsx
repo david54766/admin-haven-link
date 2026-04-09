@@ -34,7 +34,7 @@ export default function Landing() {
           <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
             <img src={pandaLogo} alt="Classroom Panda" className="h-8 w-8 sm:h-9 sm:w-9 shrink-0" />
             <span className="text-sm sm:text-lg font-bold bg-gradient-to-r from-[hsl(330,70%,65%)] to-[hsl(280,55%,60%)] bg-clip-text text-transparent truncate">
-              Classroom Panda
+              Panda Staff Training
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
