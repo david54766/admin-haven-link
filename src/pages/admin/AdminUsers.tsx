@@ -42,6 +42,7 @@ export default function AdminUsers() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Create account form state
@@ -450,7 +451,7 @@ export default function AdminUsers() {
   };
 
   const handleDeleteUser = async () => {
-    if (!deleteTarget || deleteConfirmText !== 'delete') return;
+    if (!deleteTarget || deleteConfirmText !== deleteTarget.full_name) return;
     setIsDeleting(true);
     try {
       const response = await supabase.functions.invoke('delete-user', {
@@ -463,12 +464,20 @@ export default function AdminUsers() {
       setIsDeleteDialogOpen(false);
       setDeleteTarget(null);
       setDeleteConfirmText('');
+      setDeleteStep(1);
       fetchUsers();
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to delete user.', variant: 'destructive' });
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const openDeleteDialog = (userProfile: Profile) => {
+    setDeleteTarget(userProfile);
+    setDeleteStep(1);
+    setDeleteConfirmText('');
+    setIsDeleteDialogOpen(true);
   };
 
   return (
