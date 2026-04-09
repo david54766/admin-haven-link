@@ -46,6 +46,7 @@ import AdminDocuments from "./pages/admin/AdminDocuments";
 import AdminChecklists from "./pages/admin/AdminChecklists";
 import AdminExpenses from "./pages/admin/AdminExpenses";
 import AdminCalendar from "./pages/admin/AdminCalendar";
+import PlatformDashboard from "./pages/platform/PlatformDashboard";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +97,9 @@ const App = () => (
             <Route path="/admin/expenses" element={<ProtectedRoute requireAdmin><AdminExpenses /></ProtectedRoute>} />
             <Route path="/admin/calendar" element={<ProtectedRoute requireAdmin><AdminCalendar /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireSuperAdmin><AdminSettings /></ProtectedRoute>} />
+
+            {/* Platform admin routes */}
+            <Route path="/platform" element={<ProtectedRoute requirePlatformAdmin requireApproval={false}><PlatformDashboard /></ProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
