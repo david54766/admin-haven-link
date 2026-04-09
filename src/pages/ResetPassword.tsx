@@ -9,10 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, CheckCircle, KeyRound } from 'lucide-react';
+import { Loader2, ArrowLeft, CheckCircle, KeyRound, GraduationCap } from 'lucide-react';
 import { strongPasswordSchema } from '@/lib/passwordValidation';
 import { PasswordRequirements } from '@/components/PasswordRequirements';
-import logo from '@/assets/logo.png';
 
 const resetPasswordSchema = z
   .object({
@@ -26,8 +25,6 @@ const resetPasswordSchema = z
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-
-
 export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
@@ -38,7 +35,6 @@ export default function ResetPassword() {
 
   useEffect(() => {
     const verifyToken = async () => {
-      // Check for token_hash in URL query params (from our custom reset email)
       const params = new URLSearchParams(window.location.search);
       const tokenHash = params.get('token_hash');
       const type = params.get('type');
@@ -51,7 +47,6 @@ export default function ResetPassword() {
           });
           if (!error) {
             setIsValidSession(true);
-            // Clean up URL
             window.history.replaceState({}, '', window.location.pathname);
           }
         } catch (e) {
@@ -61,7 +56,6 @@ export default function ResetPassword() {
         return;
       }
 
-      // Fallback: listen for PASSWORD_RECOVERY event (from default Supabase flow)
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'PASSWORD_RECOVERY') {
           setIsValidSession(true);
@@ -69,7 +63,6 @@ export default function ResetPassword() {
         }
       });
 
-      // Also check existing session
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsValidSession(true);
@@ -124,9 +117,9 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-brand-yellow/20 rounded-full blur-3xl" />
-        <div className="absolute top-40 right-20 w-48 h-48 bg-brand-blue/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-1/4 w-36 h-36 bg-brand-purple/15 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-40 right-20 w-48 h-48 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-1/4 w-36 h-36 bg-accent/20 rounded-full blur-3xl" />
       </div>
 
       <div className="container py-8">
@@ -140,8 +133,11 @@ export default function ResetPassword() {
         <div className="mx-auto max-w-md">
           <Card className="border-2 shadow-xl">
             <CardHeader className="text-center pb-2">
-              <img src={logo} alt="Logo" className="mx-auto h-20 w-auto mb-4" />
-              <CardTitle className="text-2xl bg-gradient-to-r from-brand-red via-brand-purple to-brand-blue bg-clip-text text-transparent">
+              <div className="mx-auto flex items-center gap-2 mb-4">
+                <GraduationCap className="h-8 w-8 text-primary" />
+                <span className="text-xl font-bold text-primary">Childcare Staff Training</span>
+              </div>
+              <CardTitle className="text-2xl text-primary">
                 {resetComplete ? 'Password Reset!' : 'Set New Password'}
               </CardTitle>
               <CardDescription>
@@ -154,92 +150,108 @@ export default function ResetPassword() {
             </CardHeader>
             <CardContent>
               {resetComplete ? (
-                <div className="text-center space-y-4">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                    <CheckCircle className="h-8 w-8 text-primary" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    You can now sign in with your new password.
-                  </p>
-                  <Button asChild className="w-full bg-primary hover:bg-primary/90">
-                    <Link to="/login">Go to Login</Link>
-                  </Button>
-                </div>
+                <SuccessState />
               ) : !isValidSession ? (
-                <div className="text-center space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Please request a new password reset link.
-                  </p>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/forgot-password">Request New Link</Link>
-                  </Button>
-                </div>
+                <InvalidLinkState />
               ) : (
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>New Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              className="border-2 focus-visible:ring-primary"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                          <PasswordRequirements password={field.value} />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              className="border-2 focus-visible:ring-primary"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Updating...
-                        </>
-                      ) : (
-                        <>
-                          <KeyRound className="mr-2 h-4 w-4" />
-                          Update Password
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </Form>
+                <ResetForm form={form} onSubmit={onSubmit} isSubmitting={isSubmitting} />
               )}
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
+  );
+}
+
+function SuccessState() {
+  return (
+    <div className="text-center space-y-4">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+        <CheckCircle className="h-8 w-8 text-primary" />
+      </div>
+      <p className="text-sm text-muted-foreground">
+        You can now sign in with your new password.
+      </p>
+      <Button asChild className="w-full bg-primary hover:bg-primary/90">
+        <Link to="/login">Go to Login</Link>
+      </Button>
+    </div>
+  );
+}
+
+function InvalidLinkState() {
+  return (
+    <div className="text-center space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Please request a new password reset link.
+      </p>
+      <Button asChild variant="outline" className="w-full">
+        <Link to="/forgot-password">Request New Link</Link>
+      </Button>
+    </div>
+  );
+}
+
+function ResetForm({ form, onSubmit, isSubmitting }: { form: any; onSubmit: any; isSubmitting: boolean }) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>New Password</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  className="border-2 focus-visible:ring-primary"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+              <PasswordRequirements password={field.value} />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  className="border-2 focus-visible:ring-primary"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          type="submit"
+          className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Updating...
+            </>
+          ) : (
+            <>
+              <KeyRound className="mr-2 h-4 w-4" />
+              Update Password
+            </>
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 }
