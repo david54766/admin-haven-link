@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Plus, Building2, Users, Shield, Power, LogOut, Mail, Calendar } from 'lucide-react';
+import { Loader2, Plus, Building2, Users, Shield, Power, LogOut, Mail, Calendar, Trash2, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Tenant {
   id: string;
@@ -38,6 +39,10 @@ export default function PlatformDashboard() {
     contact_email: '',
     admin_password: '',
   });
+  const [deleteTarget, setDeleteTarget] = useState<Tenant | null>(null);
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const fetchTenants = async () => {
     try {
@@ -126,6 +131,33 @@ export default function PlatformDashboard() {
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     }
+  };
+
+  const handleDeleteTenant = async () => {
+    if (!deleteTarget || deleteConfirmText !== deleteTarget.name) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('tenants')
+        .delete()
+        .eq('id', deleteTarget.id);
+      if (error) throw error;
+      toast({ title: 'Tenant deleted', description: `${deleteTarget.name} has been permanently deleted.` });
+      setDeleteTarget(null);
+      setDeleteStep(1);
+      setDeleteConfirmText('');
+      fetchTenants();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const openDeleteDialog = (tenant: Tenant) => {
+    setDeleteTarget(tenant);
+    setDeleteStep(1);
+    setDeleteConfirmText('');
   };
 
   const autoSlug = (name: string) => {
@@ -301,15 +333,24 @@ export default function PlatformDashboard() {
                       </div>
                     </div>
 
-                    <Button
-                      variant={tenant.is_active ? 'outline' : 'default'}
-                      size="sm"
-                      className="w-full"
-                      onClick={() => toggleTenant(tenant)}
-                    >
-                      <Power className="h-4 w-4 mr-1" />
-                      {tenant.is_active ? 'Suspend' : 'Activate'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={tenant.is_active ? 'outline' : 'default'}
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => toggleTenant(tenant)}
+                      >
+                        <Power className="h-4 w-4 mr-1" />
+                        {tenant.is_active ? 'Suspend' : 'Activate'}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => openDeleteDialog(tenant)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -363,14 +404,24 @@ export default function PlatformDashboard() {
                         {new Date(tenant.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant={tenant.is_active ? 'outline' : 'default'}
-                          size="sm"
-                          onClick={() => toggleTenant(tenant)}
-                        >
-                          <Power className="h-4 w-4 mr-1" />
-                          {tenant.is_active ? 'Suspend' : 'Activate'}
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant={tenant.is_active ? 'outline' : 'default'}
+                            size="sm"
+                            onClick={() => toggleTenant(tenant)}
+                          >
+                            <Power className="h-4 w-4 mr-1" />
+                            {tenant.is_active ? 'Suspend' : 'Activate'}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => openDeleteDialog(tenant)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -387,6 +438,70 @@ export default function PlatformDashboard() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Delete Tenant Double Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteStep(1); setDeleteConfirmText(''); } }}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              {deleteStep === 1 ? 'Delete Tenant?' : 'Final Confirmation'}
+            </DialogTitle>
+            <DialogDescription>
+              {deleteStep === 1
+                ? `You are about to permanently delete "${deleteTarget?.name}". This will remove all users, training data, certificates, and documents associated with this organization.`
+                : `This action is IRREVERSIBLE. Type the organization name to confirm deletion.`
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteStep === 1 ? (
+            <>
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>{deleteTarget?.user_count || 0} users</strong> will lose access. All data will be permanently destroyed.
+                </AlertDescription>
+              </Alert>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteStep(1); }} className="w-full sm:w-auto">Cancel</Button>
+                <Button variant="destructive" onClick={() => setDeleteStep(2)} className="w-full sm:w-auto">
+                  Yes, I want to delete
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Type <strong>"{deleteTarget?.name}"</strong> below to confirm permanent deletion.
+                  </AlertDescription>
+                </Alert>
+                <Input
+                  placeholder={deleteTarget?.name}
+                  value={deleteConfirmText}
+                  onChange={e => setDeleteConfirmText(e.target.value)}
+                  className="border-destructive"
+                />
+              </div>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setDeleteStep(1)} className="w-full sm:w-auto">Back</Button>
+                <Button
+                  variant="destructive"
+                  disabled={deleteConfirmText !== deleteTarget?.name || deleting}
+                  onClick={handleDeleteTenant}
+                  className="w-full sm:w-auto"
+                >
+                  {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Permanently Delete
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
