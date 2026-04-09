@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
     for (let i = 0; i < adminEmails.length; i += BATCH_SIZE) {
       const batch = adminEmails.slice(i, i + BATCH_SIZE);
       await resend.emails.send({
-        from: `${branding.business_name} <noreply@msjoschildcare.com>`,
+        from: `${branding.business_name} <noreply@childcarestafftraining.com>`,
         to: batch,
         subject: `Checklist Submitted: ${templateTitle || 'Daily Checklist'} — ${staffName || 'Staff'}`,
         html: wrapEmail(branding, bodyHtml),
