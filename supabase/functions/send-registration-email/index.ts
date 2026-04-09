@@ -113,6 +113,11 @@ Deno.serve(async (req) => {
           <a href="${loginUrl}/login" style="display: inline-block; padding: 14px 32px; background-color: ${brandColor}; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Visit Portal</a>
         </div>
       ` : ''}
+      <div style="margin: 25px 0; padding: 20px; background-color: #f0f9ff; border-radius: 8px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 15px; color: #333; font-weight: 600;">📺 Watch Our Training Video</p>
+        <p style="margin: 0 0 15px; font-size: 14px; color: #555;">Get a head start by watching our training overview video.</p>
+        <a href="https://www.youtube.com/watch?v=Teciu711Ii0" style="display: inline-block; padding: 10px 24px; background-color: ${brandColor}; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">Watch Training Video</a>
+      </div>
       <p style="font-size: 14px; color: #888; line-height: 1.5;">
         If you have any questions, please reach out to your administrator.
       </p>
