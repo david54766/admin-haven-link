@@ -1,110 +1,116 @@
 
 
-# Multi-Tenant Architecture Plan
+# Super Admin Tenant Management & Platform Updates
 
-## What Multi-Tenancy Means Here
+## Overview
+Build a platform-level admin system for managing childcare organizations (tenants), update domain references to `childcarestafftraining.com`, redesign the landing page, and add welcome emails for new tenants.
 
-Right now, the app serves **one organization** with multiple locations (centers). Multi-tenancy would allow **multiple independent organizations** (tenants) to share the same app — each with their own staff, training content, branding, settings, and data, completely isolated from each other.
+## Step 1: Database Migration
 
-Example: "Ms. Jo's Childcare" and "Sunshine Academy" would both use this portal at their own URLs, never seeing each other's data.
+Add `platform_admin` to the role enum, extend the `tenants` table, and add RLS policies.
 
----
+```sql
+-- Add platform_admin role
+ALTER TYPE public.app_role ADD VALUE 'platform_admin';
 
-## How It Would Work
+-- Extend tenants table
+ALTER TABLE public.tenants ADD COLUMN contact_email text;
+ALTER TABLE public.tenants ADD COLUMN contact_name text;
+ALTER TABLE public.tenants ADD COLUMN suspended_at timestamptz;
+ALTER TABLE public.tenants ADD COLUMN max_users integer DEFAULT 50;
 
-### 1. Tenant Identification
+-- Security definer function for platform admin check
+CREATE OR REPLACE FUNCTION public.is_platform_admin(_user_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$ SELECT EXISTS (
+  SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = 'platform_admin'
+) $$;
 
-Each organization gets a unique slug (e.g., `msjos`, `sunshine`). Tenants are identified by:
-- **Subdomain**: `msjos.yourdomain.com` — or —
-- **Path prefix**: `yourdomain.com/msjos` — or —
-- **Custom domain**: `training.msjoschildcare.com`
+-- RLS on tenants: platform_admin full access, tenant users read own
+CREATE POLICY "Platform admins can manage all tenants"
+  ON public.tenants FOR ALL TO authenticated
+  USING (is_platform_admin(auth.uid()))
+  WITH CHECK (is_platform_admin(auth.uid()));
 
-A new `tenants` table stores each org's config (name, slug, branding, domain).
+CREATE POLICY "Tenant users can view own tenant"
+  ON public.tenants FOR SELECT TO authenticated
+  USING (user_in_tenant(auth.uid(), id));
+```
 
-### 2. Data Isolation
+## Step 2: Auth & Routing Updates
 
-Every major table gets a `tenant_id` column. All queries and RLS policies are scoped by tenant, so users in Org A can never see Org B's data.
+- **`src/types/database.ts`** — Add `'platform_admin'` to `AppRole` union type
+- **`src/contexts/AuthContext.tsx`** — Add `isPlatformAdmin` computed from roles, expose in context
+- **`src/components/ProtectedRoute.tsx`** — Add `requirePlatformAdmin` prop; redirect non-platform-admins to `/dashboard`
+- **`src/App.tsx`** — Add platform admin routes:
+  - `/platform` → `PlatformDashboard` (requires `platformAdmin`)
 
-**Tables that need `tenant_id` added:**
-- `profiles`, `centers`, `training_tracks`, `modules`, `videos`, `quizzes`
-- `admin_announcements`, `calendar_events`, `shared_resources`, `staff_documents`
-- `staff_certificates`, `checklist_templates`, `expenses`, `positions`
-- `system_settings`, `certificate_templates`, `application_form_fields`
-- Essentially all non-UI tables
+## Step 3: Platform Admin UI
 
-### 3. RLS Policy Changes
+**New file: `src/pages/platform/PlatformDashboard.tsx`**
 
-Every RLS policy gets an additional tenant check. A helper function like `get_user_tenant_id(auth.uid())` would be used across all policies to ensure cross-tenant isolation.
+A single-page admin panel with:
+- **Tenant table**: name, slug, contact email, status (active/suspended), user count, created date
+- **Create Tenant dialog**: organization name, slug, contact name, contact email, admin password → calls `create-tenant-account` edge function
+- **Suspend/Activate toggle** per tenant (updates `is_active` + `suspended_at`)
+- **User count** per tenant (query profiles grouped by tenant_id)
 
-### 4. Branding Per Tenant
+Uses the existing `Layout` component with a platform-admin-specific nav.
 
-The current `system_settings` branding approach already works — it just needs to be keyed per tenant. Each tenant gets its own logo, colors, business name.
+## Step 4: Edge Function — `create-tenant-account`
 
-### 5. Auth & Onboarding
+**New file: `supabase/functions/create-tenant-account/index.ts`**
 
-- Users sign up to a **specific tenant** (determined by the URL they visit)
-- Their profile is linked to that tenant
-- Admins/super_admins are scoped to their tenant
-- A "platform super admin" role could exist above tenants for managing the whole system
+Accepts: `{ tenant_name, slug, contact_name, contact_email, admin_password }`
 
----
+Flow:
+1. Verify caller is `platform_admin` (check user_roles via service role client)
+2. Insert row into `tenants` table
+3. Create admin user via `auth.admin.createUser` (email confirmed)
+4. Create profile linked to new tenant
+5. Assign `director` role + link to tenant
+6. Send welcome email via Resend with login credentials and portal URL (`https://childcarestafftraining.com/login`)
 
-## Scope of Changes
+## Step 5: Update Domain References
 
-This is a **large architectural change** affecting:
+Replace all `msjoschildcare.com` with `childcarestafftraining.com` across 9 edge functions:
+- `create-user-account`, `send-registration-email`, `send-approval-email`, `send-password-reset`, `send-announcement-email`, `send-application-notification`, `send-checklist-notification`, `send-track-completion-email`, `send-certificate-expiry-notifications`
 
-| Area | Impact |
-|------|--------|
-| Database | ~30+ tables need `tenant_id` column + migration of existing data |
-| RLS Policies | Every policy rewritten to include tenant scoping |
-| Backend Functions | All edge functions need tenant awareness |
-| Frontend Routing | Tenant resolution from URL on every page load |
-| Auth Flow | Registration/login scoped to tenant |
-| Admin Settings | Branding, content, users all per-tenant |
-| Storage Buckets | File paths prefixed by tenant for isolation |
+Changes: `from` email addresses → `noreply@childcarestafftraining.com`, login URLs → `https://childcarestafftraining.com`
 
-**Estimated effort**: This is a multi-week refactor touching nearly every file and table. It is the single largest structural change possible for this codebase.
+## Step 6: Landing Page Redesign
 
----
+**Rewrite `src/pages/Landing.tsx`** — remove Classroom Panda branding and logo imports, create a generic SaaS landing page:
 
-## Recommended Approach
+- **Header**: "Childcare Staff Training" text logo + Login button
+- **Hero**: "Training Management for Childcare Centers" — compliance tracking, certificates, professional development
+- **Features grid**: Training Tracks, Compliance Documents, Certificates & Hours, Checklists, Calendar, Reports
+- **CTA**: "Contact us to get started" (no signup/payment)
+- **Footer**: `© 2026 childcarestafftraining.com`
 
-### Phase 1 — Foundation
-- Create `tenants` table with slug, name, branding config
-- Add `tenant_id` to `profiles` and core tables
-- Build tenant resolution middleware (detect tenant from URL)
-- Migrate existing data as "tenant #1"
+No self-registration or payment flows — tenants are created by platform admin only.
 
-### Phase 2 — Data Isolation
-- Add `tenant_id` to all remaining tables
-- Rewrite all RLS policies with tenant scoping
-- Update all edge functions
+## Step 7: Welcome Email Template
 
-### Phase 3 — Frontend
-- Tenant-aware routing and branding initialization
-- Scoped login/registration pages
-- Admin UI for tenant management (platform-level)
+Built into the `create-tenant-account` edge function. Branded email including:
+- Organization name
+- Admin login credentials (email + temporary password)
+- Login URL: `https://childcarestafftraining.com/login`
+- Getting started instructions
+- Sent from `noreply@childcarestafftraining.com`
 
-### Phase 4 — Platform Admin
-- Super-admin dashboard to create/manage tenants
-- Tenant billing, usage metrics (optional)
+## Files Changed Summary
 
----
-
-## Alternative: Simpler "White-Label" Approach
-
-If you just need to **deploy separate instances** for different clients (rather than true shared-database multi-tenancy), a simpler path is:
-- Keep the current architecture as-is
-- Deploy separate Lovable projects per client
-- Each gets its own database and branding
-
-This requires zero code changes but means managing multiple projects.
-
----
-
-## Summary
-
-True multi-tenancy is achievable but is a **major refactor** (30+ table migrations, all RLS policies, all edge functions, routing changes). The white-label alternative gives similar results with no code changes but more operational overhead.
-
-Would you like to proceed with either approach?
+| Action | File |
+|--------|------|
+| Migration | New SQL migration (enum + tenants columns + RLS + function) |
+| Modify | `src/types/database.ts` |
+| Modify | `src/contexts/AuthContext.tsx` |
+| Modify | `src/components/ProtectedRoute.tsx` |
+| Modify | `src/App.tsx` |
+| Rewrite | `src/pages/Landing.tsx` |
+| Create | `src/pages/platform/PlatformDashboard.tsx` |
+| Create | `supabase/functions/create-tenant-account/index.ts` |
+| Modify | 9 edge functions (domain replacement) |
 
