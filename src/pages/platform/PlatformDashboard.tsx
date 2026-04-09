@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Plus, Building2, Users, Shield, Power, LogOut } from 'lucide-react';
+import { Loader2, Plus, Building2, Users, Shield, Power, LogOut, Mail, Calendar } from 'lucide-react';
 
 interface Tenant {
   id: string;
@@ -48,7 +48,6 @@ export default function PlatformDashboard() {
 
       if (error) throw error;
 
-      // Get user counts per tenant
       const { data: profiles } = await supabase
         .from('profiles')
         .select('tenant_id');
@@ -141,185 +140,250 @@ export default function PlatformDashboard() {
     );
   }
 
+  const CreateTenantDialog = (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="shrink-0">
+          <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">New Tenant</span>
+          <span className="sm:hidden">New</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-[95vw] sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Create New Tenant</DialogTitle>
+          <DialogDescription>
+            Set up a new childcare organization. An admin account will be created.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Organization Name</Label>
+            <Input
+              placeholder="Sunshine Childcare"
+              value={form.tenant_name}
+              onChange={e => setForm(f => ({ ...f, tenant_name: e.target.value, slug: autoSlug(e.target.value) }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Slug</Label>
+            <Input
+              placeholder="sunshine-childcare"
+              value={form.slug}
+              onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Admin Contact Name</Label>
+            <Input
+              placeholder="Jane Smith"
+              value={form.contact_name}
+              onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Admin Email</Label>
+            <Input
+              type="email"
+              placeholder="admin@example.com"
+              value={form.contact_email}
+              onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Admin Password</Label>
+            <Input
+              type="password"
+              placeholder="Temporary password"
+              value={form.admin_password}
+              onChange={e => setForm(f => ({ ...f, admin_password: e.target.value }))}
+            />
+          </div>
+        </div>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+          <Button onClick={handleCreate} disabled={creating} className="w-full sm:w-auto">
+            {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Create Tenant
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-bold text-foreground">Platform Admin</h1>
+        <div className="container px-4 flex h-14 sm:h-16 items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <h1 className="text-base sm:text-lg font-bold text-foreground">Platform Admin</h1>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
+            <LogOut className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Sign Out</span>
           </Button>
         </div>
       </header>
 
-      <main className="container py-8 space-y-6">
+      <main className="container px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Tenants</CardDescription>
-              <CardTitle className="text-3xl">{tenants.length}</CardTitle>
+            <CardHeader className="p-3 sm:p-6 pb-1 sm:pb-2">
+              <CardDescription className="text-xs sm:text-sm">Tenants</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl">{tenants.length}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Active</CardDescription>
-              <CardTitle className="text-3xl text-primary">{tenants.filter(t => t.is_active).length}</CardTitle>
+            <CardHeader className="p-3 sm:p-6 pb-1 sm:pb-2">
+              <CardDescription className="text-xs sm:text-sm">Active</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl text-primary">{tenants.filter(t => t.is_active).length}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Users</CardDescription>
-              <CardTitle className="text-3xl">{tenants.reduce((sum, t) => sum + (t.user_count || 0), 0)}</CardTitle>
+            <CardHeader className="p-3 sm:p-6 pb-1 sm:pb-2">
+              <CardDescription className="text-xs sm:text-sm">Users</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl">{tenants.reduce((sum, t) => sum + (t.user_count || 0), 0)}</CardTitle>
             </CardHeader>
           </Card>
         </div>
 
         {/* Tenant Management */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Tenant Organizations
+          <CardHeader className="p-4 sm:p-6 flex flex-row items-start sm:items-center justify-between gap-2">
+            <div className="min-w-0">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Building2 className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                <span className="truncate">Organizations</span>
               </CardTitle>
-              <CardDescription>Manage childcare organizations on the platform</CardDescription>
+              <CardDescription className="text-xs sm:text-sm mt-1">Manage childcare organizations</CardDescription>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Tenant
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Tenant</DialogTitle>
-                  <DialogDescription>
-                    Set up a new childcare organization. An admin account will be created and a welcome email sent.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Organization Name</Label>
-                    <Input
-                      placeholder="Sunshine Childcare"
-                      value={form.tenant_name}
-                      onChange={e => setForm(f => ({ ...f, tenant_name: e.target.value, slug: autoSlug(e.target.value) }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Slug</Label>
-                    <Input
-                      placeholder="sunshine-childcare"
-                      value={form.slug}
-                      onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Admin Contact Name</Label>
-                    <Input
-                      placeholder="Jane Smith"
-                      value={form.contact_name}
-                      onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Admin Email</Label>
-                    <Input
-                      type="email"
-                      placeholder="admin@example.com"
-                      value={form.contact_email}
-                      onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Admin Password</Label>
-                    <Input
-                      type="password"
-                      placeholder="Temporary password"
-                      value={form.admin_password}
-                      onChange={e => setForm(f => ({ ...f, admin_password: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={handleCreate} disabled={creating}>
-                    {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Create Tenant
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            {CreateTenantDialog}
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Users</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tenants.map(tenant => (
-                  <TableRow key={tenant.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{tenant.name}</p>
-                        <p className="text-sm text-muted-foreground">{tenant.slug}</p>
+          <CardContent className="p-4 sm:p-6 pt-0">
+            {/* Mobile card layout */}
+            <div className="space-y-3 md:hidden">
+              {tenants.map(tenant => (
+                <Card key={tenant.id} className="border shadow-sm">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{tenant.name}</p>
+                        <p className="text-xs text-muted-foreground">{tenant.slug}</p>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="text-sm">{tenant.contact_name || '—'}</p>
-                        <p className="text-sm text-muted-foreground">{tenant.contact_email || '—'}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>{tenant.user_count || 0}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={tenant.is_active ? 'default' : 'destructive'}>
+                      <Badge variant={tenant.is_active ? 'default' : 'destructive'} className="shrink-0">
                         {tenant.is_active ? 'Active' : 'Suspended'}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(tenant.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant={tenant.is_active ? 'outline' : 'default'}
-                        size="sm"
-                        onClick={() => toggleTenant(tenant)}
-                      >
-                        <Power className="h-4 w-4 mr-1" />
-                        {tenant.is_active ? 'Suspend' : 'Activate'}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {tenants.length === 0 && (
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {tenant.contact_name && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Users className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{tenant.contact_name}</span>
+                        </div>
+                      )}
+                      {tenant.contact_email && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Mail className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{tenant.contact_email}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Users className="h-3.5 w-3.5 shrink-0" />
+                        <span>{tenant.user_count || 0} users</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5 shrink-0" />
+                        <span>{new Date(tenant.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant={tenant.is_active ? 'outline' : 'default'}
+                      size="sm"
+                      className="w-full"
+                      onClick={() => toggleTenant(tenant)}
+                    >
+                      <Power className="h-4 w-4 mr-1" />
+                      {tenant.is_active ? 'Suspend' : 'Activate'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+              {tenants.length === 0 && (
+                <p className="text-center py-8 text-muted-foreground text-sm">
+                  No tenants yet. Create the first one above.
+                </p>
+              )}
+            </div>
+
+            {/* Desktop table layout */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No tenants yet. Create the first one above.
-                    </TableCell>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Users</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {tenants.map(tenant => (
+                    <TableRow key={tenant.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{tenant.name}</p>
+                          <p className="text-sm text-muted-foreground">{tenant.slug}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="text-sm">{tenant.contact_name || '—'}</p>
+                          <p className="text-sm text-muted-foreground">{tenant.contact_email || '—'}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span>{tenant.user_count || 0}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={tenant.is_active ? 'default' : 'destructive'}>
+                          {tenant.is_active ? 'Active' : 'Suspended'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(tenant.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant={tenant.is_active ? 'outline' : 'default'}
+                          size="sm"
+                          onClick={() => toggleTenant(tenant)}
+                        >
+                          <Power className="h-4 w-4 mr-1" />
+                          {tenant.is_active ? 'Suspend' : 'Activate'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {tenants.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        No tenants yet. Create the first one above.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </main>
