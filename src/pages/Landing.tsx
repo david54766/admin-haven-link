@@ -56,7 +56,7 @@ export default function Landing() {
           <div className="absolute bottom-20 left-1/3 w-36 h-36 bg-accent/20 rounded-full blur-3xl" />
         </div>
 
-        <div className="container text-center relative">
+        <div className="container text-center relative px-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
             <Building2 className="h-4 w-4" />
             <span className="text-sm font-medium">A Dedicated Portal for Every Organization</span>
