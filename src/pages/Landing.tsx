@@ -67,7 +67,7 @@ export default function Landing() {
             <span className="block mt-2 text-primary">Childcare Organizations</span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg text-muted-foreground">
             Give your center its own branded training portal — onboard staff faster,
             track compliance automatically, and issue certificates in minutes. No IT required.
           </p>
