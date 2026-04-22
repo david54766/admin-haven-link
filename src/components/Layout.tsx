@@ -37,7 +37,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { profile, isAdmin, isDirector, isSuperAdmin, signOut } = useAuth();
+  const { profile, isAdmin, isDirector, isSuperAdmin, isPlatformAdmin, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -178,7 +178,7 @@ export function Layout({ children }: LayoutProps) {
                         )}
                       </Link>
                     </DropdownMenuItem>
-                    {isSuperAdmin && !isDirector && (
+                    {!isPlatformAdmin && (
                       <DropdownMenuItem asChild>
                         <Link to="/admin/settings" className="flex items-center">
                           <Settings className="mr-2 h-4 w-4" />
