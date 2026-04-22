@@ -85,7 +85,7 @@ export function useBranding() {
           key: 'branding',
           value: newBranding,
           description: 'Branding settings including logo, business name, and colors',
-        }, { onConflict: 'key' });
+        }, { onConflict: 'tenant_id,key' });
 
       if (error) throw error;
 
