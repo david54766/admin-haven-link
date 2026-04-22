@@ -1,6 +1,35 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, CheckCircle, Clock, AlertTriangle, TrendingUp, BarChart3, Building2 } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, AreaChart, Area } from 'recharts';
+import {
+  PieChart,
+  Pie as PieRaw,
+  Cell as CellRaw,
+  BarChart,
+  Bar as BarRaw,
+  XAxis as XAxisRaw,
+  YAxis as YAxisRaw,
+  CartesianGrid as CartesianGridRaw,
+  Tooltip as TooltipRaw,
+  ResponsiveContainer,
+  Legend as LegendRaw,
+  LineChart,
+  Line as LineRaw,
+  AreaChart,
+  Area as AreaRaw,
+} from 'recharts';
+
+// Recharts 2.x has type incompatibilities with newer @types/react.
+// Cast to any to satisfy the JSX element type checks without changing runtime behavior.
+const Pie = PieRaw as any;
+const Cell = CellRaw as any;
+const Bar = BarRaw as any;
+const XAxis = XAxisRaw as any;
+const YAxis = YAxisRaw as any;
+const CartesianGrid = CartesianGridRaw as any;
+const Tooltip = TooltipRaw as any;
+const Legend = LegendRaw as any;
+const Line = LineRaw as any;
+const Area = AreaRaw as any;
 
 interface HoursStatusData {
   user_id: string;
