@@ -17,7 +17,29 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { CalendarIcon, DollarSign, TrendingUp, PieChart as PieChartIcon, Plus, Trash2, Pencil, ArrowUpDown, Download } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area } from 'recharts';
+import {
+  PieChart,
+  Pie as PieRaw,
+  Cell as CellRaw,
+  ResponsiveContainer,
+  Tooltip as TooltipRaw,
+  BarChart,
+  Bar as BarRaw,
+  XAxis as XAxisRaw,
+  YAxis as YAxisRaw,
+  CartesianGrid as CartesianGridRaw,
+  AreaChart,
+  Area as AreaRaw,
+} from 'recharts';
+// Recharts 2.x type-incompat shim with newer @types/react.
+const Pie = PieRaw as any;
+const Cell = CellRaw as any;
+const Tooltip = TooltipRaw as any;
+const Bar = BarRaw as any;
+const XAxis = XAxisRaw as any;
+const YAxis = YAxisRaw as any;
+const CartesianGrid = CartesianGridRaw as any;
+const Area = AreaRaw as any;
 import { cn } from '@/lib/utils';
 import { HoursTimeFilter, TimePreset } from '@/components/admin/HoursTimeFilter';
 
