@@ -1,0 +1,11 @@
+DROP TRIGGER IF EXISTS set_tenant_id_on_staff_track_assignments ON public.staff_track_assignments;
+CREATE TRIGGER set_tenant_id_on_staff_track_assignments
+BEFORE INSERT ON public.staff_track_assignments
+FOR EACH ROW
+EXECUTE FUNCTION public.set_tenant_id_from_user();
+
+DROP TRIGGER IF EXISTS set_tenant_id_on_track_position_assignments ON public.track_position_assignments;
+CREATE TRIGGER set_tenant_id_on_track_position_assignments
+BEFORE INSERT ON public.track_position_assignments
+FOR EACH ROW
+EXECUTE FUNCTION public.set_tenant_id_from_user();
