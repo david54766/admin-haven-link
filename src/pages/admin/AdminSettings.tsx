@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BackupManager } from '@/components/admin/BackupManager';
 
 export default function AdminSettings() {
-  const { isSuperAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const { toast } = useToast();
   const [centers, setCenters] = useState<Center[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
@@ -260,7 +260,7 @@ export default function AdminSettings() {
     }
   };
 
-  if (!isSuperAdmin) {
+  if (!isAdmin) {
     return (
       <Layout>
         <Card>
