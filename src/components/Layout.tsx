@@ -178,7 +178,7 @@ export function Layout({ children }: LayoutProps) {
                         )}
                       </Link>
                     </DropdownMenuItem>
-                    {isSuperAdmin && !isDirector && (
+                    {!isPlatformAdmin && (
                       <DropdownMenuItem asChild>
                         <Link to="/admin/settings" className="flex items-center">
                           <Settings className="mr-2 h-4 w-4" />
