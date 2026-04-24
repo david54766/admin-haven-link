@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, CheckCircle, Users } from 'lucide-react';
 import { PasswordRequirements } from '@/components/PasswordRequirements';
 import logo from '@/assets/logo.png';
+import { useTenant } from '@/contexts/TenantContext';
 
 
 const registrationSchema = z.object({
@@ -37,6 +38,7 @@ export default function StaffRegister() {
   const [positions, setPositions] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { tenantId } = useTenant();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,6 +77,7 @@ export default function StaffRegister() {
           data: {
             full_name: data.fullName,
             position: data.position,
+            tenant_id: tenantId,
           },
         },
       });

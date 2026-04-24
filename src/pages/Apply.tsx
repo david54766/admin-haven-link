@@ -17,6 +17,7 @@ import { Loader2, ArrowLeft, CheckCircle, Sparkles } from 'lucide-react';
 import { PasswordRequirements } from '@/components/PasswordRequirements';
 import logo from '@/assets/logo.png';
 import { ApplicationFormField } from '@/types/applicationForm';
+import { useTenant } from '@/contexts/TenantContext';
 
 export default function Apply() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,6 +27,7 @@ export default function Apply() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { tenantId } = useTenant();
 
   // Fetch dynamic form fields and centers
   useEffect(() => {
@@ -157,6 +159,7 @@ export default function Apply() {
             full_name: fullName,
             phone: phone,
             application_message: applicationMessage,
+            tenant_id: tenantId,
           },
         },
       });
