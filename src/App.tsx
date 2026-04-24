@@ -63,8 +63,9 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/register" element={<StaffRegister />} />
+            {/* Bare apply/register/login route through a tenant selector to avoid landing in the platform tenant */}
+            <Route path="/apply" element={<SelectOrganization destination="apply" />} />
+            <Route path="/register" element={<SelectOrganization destination="register" />} />
             <Route path="/login" element={<Login />} />
             {/* Tenant-scoped public routes */}
             <Route path="/t/:slug/apply" element={<Apply />} />
