@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
     }
 
     // Use the redirectTo from the client (which includes the correct origin)
-    const baseUrl = redirectTo || 'https://bloom-team-link.lovable.app/reset-password';
+    const baseUrl = redirectTo || 'https://childcarestafftraining.com/reset-password';
     const resetLink = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}token_hash=${hashedToken}&type=recovery`;
 
     const branding = await fetchBranding(adminClient);
