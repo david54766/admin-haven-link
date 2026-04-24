@@ -879,6 +879,55 @@ export default function AdminSettings() {
             </div>
           </TabsContent>
 
+          {/* Registration Links Tab */}
+          <TabsContent value="links">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link2 className="h-5 w-5" />
+                  Your Organization's Registration Links
+                </CardTitle>
+                <CardDescription>
+                  Share these links with applicants and staff so they're automatically added to your organization. Anyone using the generic /apply or /register links will land in the platform tenant instead.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!tenantSlug ? (
+                  <p className="text-muted-foreground">Loading your organization's links...</p>
+                ) : (
+                  <div className="space-y-4">
+                    {[
+                      { key: 'apply', label: 'New Applicant Form', desc: 'Public application form for prospective staff', path: `/t/${tenantSlug}/apply` },
+                      { key: 'register', label: 'Staff Self-Registration', desc: 'Direct sign-up link for invited staff', path: `/t/${tenantSlug}/register` },
+                      { key: 'login', label: 'Branded Login Page', desc: 'Login page that shows your organization branding', path: `/t/${tenantSlug}/login` },
+                    ].map(({ key, label, desc, path }) => {
+                      const url = `${window.location.origin}${path}`;
+                      const isCopied = copiedKey === key;
+                      return (
+                        <div key={key} className="rounded-lg border p-4 space-y-2">
+                          <div>
+                            <p className="font-semibold">{label}</p>
+                            <p className="text-sm text-muted-foreground">{desc}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input readOnly value={url} className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+                            <Button type="button" variant="outline" size="sm" onClick={() => copyLink(key, url)}>
+                              {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              <span className="ml-1.5 hidden sm:inline">{isCopied ? 'Copied' : 'Copy'}</span>
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <p className="text-xs text-muted-foreground pt-2">
+                      💡 Tip: When you create staff accounts directly from the Users page, they're already auto-assigned to your organization — no link needed.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Backups Tab */}
           <TabsContent value="backups">
             <Card>
