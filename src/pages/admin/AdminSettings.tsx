@@ -78,23 +78,46 @@ export default function AdminSettings() {
   const [docTypeName, setDocTypeName] = useState('');
   const [docTypeDescription, setDocTypeDescription] = useState('');
 
+  // Tenant registration links
+  const [tenantSlug, setTenantSlug] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [centersRes, docTypesRes] = await Promise.all([
+      const [centersRes, docTypesRes, profileRes] = await Promise.all([
         supabase.from('centers').select('*').order('name'),
         supabase.from('document_types').select('*').order('name'),
+        supabase.rpc('get_own_profile'),
       ]);
 
       setCenters((centersRes.data || []) as Center[]);
       setDocumentTypes((docTypesRes.data || []) as DocumentType[]);
+
+      const tenantId = (profileRes.data as any)?.[0]?.tenant_id;
+      if (tenantId) {
+        const { data: tenants } = await supabase.rpc('list_active_tenants');
+        const t = (tenants || []).find((x: any) => x.id === tenantId);
+        if (t) setTenantSlug(t.slug);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const copyLink = async (key: string, url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedKey(key);
+      toast({ title: 'Link copied', description: url });
+      setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 2000);
+    } catch {
+      toast({ title: 'Copy failed', variant: 'destructive' });
     }
   };
 
