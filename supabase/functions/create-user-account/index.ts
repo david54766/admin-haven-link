@@ -104,15 +104,32 @@ Deno.serve(async (req) => {
     const callerRoleList = (callerRoles || []).map((r: any) => r.role);
     const callerIsSuperAdmin = callerRoleList.includes('super_admin');
     const callerIsDirector = callerRoleList.includes('director');
+    const callerIsPlatformAdmin = callerRoleList.includes('platform_admin');
 
-    if (!callerIsSuperAdmin && !callerIsDirector) {
+    if (!callerIsSuperAdmin && !callerIsDirector && !callerIsPlatformAdmin) {
       return new Response(JSON.stringify({ error: 'Only admins can create accounts' }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    // Resolve caller's tenant so the new user is auto-assigned to the same organization
+    const { data: callerProfile } = await adminClient
+      .from('profiles')
+      .select('tenant_id')
+      .eq('user_id', callerUser.id)
+      .maybeSingle();
+    const callerTenantId = callerProfile?.tenant_id || null;
+
+    if (!callerTenantId && !callerIsPlatformAdmin) {
+      return new Response(JSON.stringify({ error: 'Your account is not assigned to an organization. Contact support.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const body = await req.json();
-    const { email, password, full_name, role, center_id, position } = body;
+    const { email, password, full_name, role, center_id, position, tenant_id: bodyTenantId } = body;
+    // Platform admins may target a specific tenant; everyone else uses their own
+    const targetTenantId = (callerIsPlatformAdmin && bodyTenantId) ? bodyTenantId : callerTenantId;
 
     if (callerIsDirector && !callerIsSuperAdmin && role && role !== 'staff') {
       return new Response(JSON.stringify({ error: 'Directors can only create staff accounts' }), {
@@ -149,12 +166,15 @@ Deno.serve(async (req) => {
     const { error: profileError } = await adminClient.from('profiles').upsert({
       user_id: userId, email, full_name, status: 'approved',
       center_id: center_id || null, position: position || null,
+      tenant_id: targetTenantId,
     }, { onConflict: 'user_id' });
 
     if (profileError) console.error('Profile update error:', profileError);
 
     const userRole = role || 'staff';
-    const { error: roleError } = await adminClient.from('user_roles').insert({ user_id: userId, role: userRole });
+    const { error: roleError } = await adminClient.from('user_roles').insert({
+      user_id: userId, role: userRole, tenant_id: targetTenantId,
+    });
     if (roleError) console.error('Role insert error:', roleError);
 
     // Send welcome email

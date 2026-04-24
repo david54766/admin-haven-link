@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Building, FileType, Settings2, RefreshCw, Palette, ClipboardList, Clock, Database, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, Building, FileType, Settings2, RefreshCw, Palette, ClipboardList, Clock, Database, Download, Link2, Copy, Check } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Center, DocumentType } from '@/types/database';
@@ -78,23 +78,46 @@ export default function AdminSettings() {
   const [docTypeName, setDocTypeName] = useState('');
   const [docTypeDescription, setDocTypeDescription] = useState('');
 
+  // Tenant registration links
+  const [tenantSlug, setTenantSlug] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [centersRes, docTypesRes] = await Promise.all([
+      const [centersRes, docTypesRes, profileRes] = await Promise.all([
         supabase.from('centers').select('*').order('name'),
         supabase.from('document_types').select('*').order('name'),
+        supabase.rpc('get_own_profile'),
       ]);
 
       setCenters((centersRes.data || []) as Center[]);
       setDocumentTypes((docTypesRes.data || []) as DocumentType[]);
+
+      const tenantId = (profileRes.data as any)?.[0]?.tenant_id;
+      if (tenantId) {
+        const { data: tenants } = await supabase.rpc('list_active_tenants');
+        const t = (tenants || []).find((x: any) => x.id === tenantId);
+        if (t) setTenantSlug(t.slug);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const copyLink = async (key: string, url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedKey(key);
+      toast({ title: 'Link copied', description: url });
+      setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 2000);
+    } catch {
+      toast({ title: 'Copy failed', variant: 'destructive' });
     }
   };
 
@@ -305,6 +328,10 @@ export default function AdminSettings() {
             <TabsTrigger value="organization" className="flex items-center gap-1.5">
               <Building className="h-4 w-4" />
               Organization
+            </TabsTrigger>
+            <TabsTrigger value="links" className="flex items-center gap-1.5">
+              <Link2 className="h-4 w-4" />
+              Registration Links
             </TabsTrigger>
             <TabsTrigger value="backups" className="flex items-center gap-1.5">
               <Database className="h-4 w-4" />
@@ -850,6 +877,55 @@ export default function AdminSettings() {
                 </Card>
               </div>
             </div>
+          </TabsContent>
+
+          {/* Registration Links Tab */}
+          <TabsContent value="links">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link2 className="h-5 w-5" />
+                  Your Organization's Registration Links
+                </CardTitle>
+                <CardDescription>
+                  Share these links with applicants and staff so they're automatically added to your organization. Anyone using the generic /apply or /register links will land in the platform tenant instead.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!tenantSlug ? (
+                  <p className="text-muted-foreground">Loading your organization's links...</p>
+                ) : (
+                  <div className="space-y-4">
+                    {[
+                      { key: 'apply', label: 'New Applicant Form', desc: 'Public application form for prospective staff', path: `/t/${tenantSlug}/apply` },
+                      { key: 'register', label: 'Staff Self-Registration', desc: 'Direct sign-up link for invited staff', path: `/t/${tenantSlug}/register` },
+                      { key: 'login', label: 'Branded Login Page', desc: 'Login page that shows your organization branding', path: `/t/${tenantSlug}/login` },
+                    ].map(({ key, label, desc, path }) => {
+                      const url = `${window.location.origin}${path}`;
+                      const isCopied = copiedKey === key;
+                      return (
+                        <div key={key} className="rounded-lg border p-4 space-y-2">
+                          <div>
+                            <p className="font-semibold">{label}</p>
+                            <p className="text-sm text-muted-foreground">{desc}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input readOnly value={url} className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+                            <Button type="button" variant="outline" size="sm" onClick={() => copyLink(key, url)}>
+                              {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              <span className="ml-1.5 hidden sm:inline">{isCopied ? 'Copied' : 'Copy'}</span>
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <p className="text-xs text-muted-foreground pt-2">
+                      💡 Tip: When you create staff accounts directly from the Users page, they're already auto-assigned to your organization — no link needed.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Backups Tab */}
