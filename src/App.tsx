@@ -65,6 +65,10 @@ const App = () => (
             <Route path="/apply" element={<Apply />} />
             <Route path="/register" element={<StaffRegister />} />
             <Route path="/login" element={<Login />} />
+            {/* Tenant-scoped public routes */}
+            <Route path="/t/:slug/apply" element={<Apply />} />
+            <Route path="/t/:slug/register" element={<StaffRegister />} />
+            <Route path="/t/:slug/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/pending" element={<Pending />} />
