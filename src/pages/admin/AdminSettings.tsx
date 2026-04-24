@@ -329,6 +329,10 @@ export default function AdminSettings() {
               <Building className="h-4 w-4" />
               Organization
             </TabsTrigger>
+            <TabsTrigger value="links" className="flex items-center gap-1.5">
+              <Link2 className="h-4 w-4" />
+              Registration Links
+            </TabsTrigger>
             <TabsTrigger value="backups" className="flex items-center gap-1.5">
               <Database className="h-4 w-4" />
               Backups
