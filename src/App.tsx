@@ -13,6 +13,7 @@ import Landing from "./pages/Landing";
 import Apply from "./pages/Apply";
 import StaffRegister from "./pages/StaffRegister";
 import Login from "./pages/Login";
+import SelectOrganization from "./pages/SelectOrganization";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Pending from "./pages/Pending";
