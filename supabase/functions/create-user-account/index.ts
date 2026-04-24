@@ -166,12 +166,15 @@ Deno.serve(async (req) => {
     const { error: profileError } = await adminClient.from('profiles').upsert({
       user_id: userId, email, full_name, status: 'approved',
       center_id: center_id || null, position: position || null,
+      tenant_id: targetTenantId,
     }, { onConflict: 'user_id' });
 
     if (profileError) console.error('Profile update error:', profileError);
 
     const userRole = role || 'staff';
-    const { error: roleError } = await adminClient.from('user_roles').insert({ user_id: userId, role: userRole });
+    const { error: roleError } = await adminClient.from('user_roles').insert({
+      user_id: userId, role: userRole, tenant_id: targetTenantId,
+    });
     if (roleError) console.error('Role insert error:', roleError);
 
     // Send welcome email
