@@ -30,7 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function AdminContent() {
   const { toast } = useToast();
+  const { actingTenantId, profile } = useAuth();
   const { getEffectiveDefaults } = useContentDefaults();
+  const effectiveTenantId = actingTenantId || profile?.tenant_id || null;
   const [tracks, setTracks] = useState<TrainingTrack[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,10 +75,13 @@ export default function AdminContent() {
 
   useEffect(() => {
     fetchTracks();
-  }, []);
+  }, [effectiveTenantId]);
 
   const fetchTracks = async () => {
+    if (!effectiveTenantId) return;
+
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('training_tracks')
         .select(`
@@ -92,10 +97,11 @@ export default function AdminContent() {
             module_lessons(*, lesson_pages(*))
           )
         `)
+        .eq('tenant_id', effectiveTenantId)
         .order('order_index');
 
       if (error) throw error;
-      setTracks((data || []) as TrainingTrack[]);
+      setTracks(((data || []) as TrainingTrack[]).filter(track => track.tenant_id === effectiveTenantId));
     } catch (error) {
       console.error('Error fetching tracks:', error);
     } finally {
