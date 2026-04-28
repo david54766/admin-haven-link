@@ -71,7 +71,6 @@ export function Layout({ children }: LayoutProps) {
     { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
     { href: '/admin/expenses', label: 'Expenses', icon: DollarSign },
     { href: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
-    ...((!isPlatformAdmin || actingTenantId) ? [{ href: '/admin/settings', label: 'Settings', icon: Settings }] : []),
   ];
 
   const isOnAdminRoute = location.pathname.startsWith('/admin');
