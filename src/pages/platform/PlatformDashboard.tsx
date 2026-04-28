@@ -25,7 +25,22 @@ interface Tenant {
   max_users: number | null;
   created_at: string;
   user_count?: number;
+  last_login?: string | null;
 }
+
+const formatLastLogin = (iso: string | null | undefined) => {
+  if (!iso) return 'Never';
+  const d = new Date(iso);
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return d.toLocaleDateString();
+};
 
 export default function PlatformDashboard() {
   const { signOut, user, refreshProfile } = useAuth();
