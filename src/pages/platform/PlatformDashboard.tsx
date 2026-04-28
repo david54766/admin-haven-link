@@ -364,13 +364,21 @@ export default function PlatformDashboard() {
 
                     <div className="flex gap-2">
                       <Button
-                        variant={tenant.is_active ? 'outline' : 'default'}
+                        variant="default"
                         size="sm"
                         className="flex-1"
+                        onClick={() => enterTenant(tenant)}
+                        disabled={!tenant.is_active}
+                      >
+                        <LogIn className="h-4 w-4 mr-1" />
+                        Enter
+                      </Button>
+                      <Button
+                        variant={tenant.is_active ? 'outline' : 'default'}
+                        size="sm"
                         onClick={() => toggleTenant(tenant)}
                       >
-                        <Power className="h-4 w-4 mr-1" />
-                        {tenant.is_active ? 'Suspend' : 'Activate'}
+                        <Power className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="destructive"
