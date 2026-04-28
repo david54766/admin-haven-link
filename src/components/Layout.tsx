@@ -128,7 +128,7 @@ export function Layout({ children }: LayoutProps) {
           </Sheet>
 
           <Link to="/dashboard" className="mr-6 flex items-center space-x-3">
-            <img src={logo} alt={branding.business_name} className="h-10 w-auto" />
+            <img src={logo} alt={branding.business_name} className="h-14 w-auto" />
             <span className="hidden font-bold text-foreground lg:inline-block">{branding.business_name}</span>
           </Link>
 
