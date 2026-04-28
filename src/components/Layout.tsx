@@ -31,6 +31,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import defaultLogo from '@/assets/logo.png';
 import { useBranding } from '@/hooks/useBranding';
+import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
