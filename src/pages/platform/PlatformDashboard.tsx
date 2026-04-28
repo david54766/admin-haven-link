@@ -9,8 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Plus, Building2, Users, Shield, Power, LogOut, Mail, Calendar, Trash2, AlertTriangle } from 'lucide-react';
+import { Loader2, Plus, Building2, Users, Shield, Power, LogOut, Mail, Calendar, Trash2, AlertTriangle, LogIn } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNavigate } from 'react-router-dom';
 
 interface Tenant {
   id: string;
