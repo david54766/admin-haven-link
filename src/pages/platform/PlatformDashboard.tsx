@@ -382,6 +382,10 @@ export default function PlatformDashboard() {
                         <Calendar className="h-3.5 w-3.5 shrink-0" />
                         <span>{new Date(tenant.created_at).toLocaleDateString()}</span>
                       </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <LogIn className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">Last: {formatLastLogin(tenant.last_login)}</span>
+                      </div>
                     </div>
 
                     <div className="flex gap-2">
