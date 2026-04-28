@@ -434,6 +434,7 @@ export default function PlatformDashboard() {
                     <TableHead>Users</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
+                    <TableHead>Last Login</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
