@@ -79,11 +79,18 @@ export default function PlatformDashboard() {
         countMap[p.tenant_id] = (countMap[p.tenant_id] || 0) + 1;
       });
 
+      const { data: lastLogins } = await supabase.rpc('get_tenant_last_logins');
+      const loginMap: Record<string, string> = {};
+      (lastLogins || []).forEach((row: any) => {
+        if (row.tenant_id && row.last_login) loginMap[row.tenant_id] = row.last_login;
+      });
+
       const tenantsWithCounts = (data || [])
         .filter((t: any) => t.id !== '00000000-0000-0000-0000-000000000001')
         .map((t: any) => ({
           ...t,
           user_count: countMap[t.id] || 0,
+          last_login: loginMap[t.id] || null,
         }));
 
       setTenants(tenantsWithCounts);
