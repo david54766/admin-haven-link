@@ -164,6 +164,31 @@ export default function PlatformDashboard() {
     setDeleteConfirmText('');
   };
 
+  const enterTenant = async (tenant: Tenant) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('platform_admin_sessions')
+        .upsert({
+          user_id: user.id,
+          acting_tenant_id: tenant.id,
+          expires_at: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      if (error) throw error;
+      await supabase.from('platform_admin_audit').insert({
+        user_id: user.id,
+        tenant_id: tenant.id,
+        action: 'enter',
+      });
+      await refreshProfile();
+      toast({ title: 'Entering tenant', description: `Acting as ${tenant.name}` });
+      navigate('/admin');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+  };
+
   const autoSlug = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   };
