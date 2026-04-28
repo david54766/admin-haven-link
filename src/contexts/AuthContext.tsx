@@ -157,6 +157,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin,
         isSuperAdmin,
         isPlatformAdmin,
+        actingTenantId,
+        actingTenantName,
         signOut,
         refreshProfile,
       }}
