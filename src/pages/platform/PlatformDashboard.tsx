@@ -443,6 +443,15 @@ export default function PlatformDashboard() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => enterTenant(tenant)}
+                            disabled={!tenant.is_active}
+                          >
+                            <LogIn className="h-4 w-4 mr-1" />
+                            Enter
+                          </Button>
+                          <Button
                             variant={tenant.is_active ? 'outline' : 'default'}
                             size="sm"
                             onClick={() => toggleTenant(tenant)}
