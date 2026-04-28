@@ -90,8 +90,6 @@ export default function AdminUsers() {
 
       if (usersError) throw usersError;
 
-      setUsers((usersData || []) as Profile[]);
-
       // Fetch roles for all users
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
@@ -106,6 +104,12 @@ export default function AdminUsers() {
         }
         rolesMap[role.user_id].push(role.role as AppRole);
       }
+
+      // Hide platform admins from the tenant users list
+      const filteredUsers = (usersData || []).filter(
+        (u: any) => !(rolesMap[u.user_id] || []).includes('platform_admin')
+      );
+      setUsers(filteredUsers as Profile[]);
       setUserRoles(rolesMap);
     } catch (error) {
       console.error('Error fetching users:', error);
