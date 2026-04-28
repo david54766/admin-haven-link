@@ -14,6 +14,8 @@ interface AuthContextType {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isPlatformAdmin: boolean;
+  actingTenantId: string | null;
+  actingTenantName: string | null;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
