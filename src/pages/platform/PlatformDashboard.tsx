@@ -467,6 +467,9 @@ export default function PlatformDashboard() {
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(tenant.created_at).toLocaleDateString()}
                       </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatLastLogin(tenant.last_login)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button
