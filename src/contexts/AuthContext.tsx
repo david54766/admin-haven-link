@@ -14,6 +14,8 @@ interface AuthContextType {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isPlatformAdmin: boolean;
+  actingTenantId: string | null;
+  actingTenantName: string | null;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -25,6 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
+  const [actingTenantId, setActingTenantId] = useState<string | null>(null);
+  const [actingTenantName, setActingTenantName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -51,6 +55,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setRoles((rolesData?.map((r: { role: AppRole }) => r.role) || []) as AppRole[]);
+
+      // Fetch impersonation session for platform admins
+      const isPA = (rolesData || []).some((r: any) => r.role === 'platform_admin');
+      if (isPA) {
+        const { data: sess } = await supabase
+          .from('platform_admin_sessions')
+          .select('acting_tenant_id, expires_at, tenant:tenants(name)')
+          .eq('user_id', userId)
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle();
+        if (sess) {
+          setActingTenantId(sess.acting_tenant_id);
+          setActingTenantName((sess as any).tenant?.name || null);
+        } else {
+          setActingTenantId(null);
+          setActingTenantName(null);
+        }
+      } else {
+        setActingTenantId(null);
+        setActingTenantName(null);
+      }
     } catch (error) {
       console.error('Error in fetchProfile:', error);
     }
@@ -111,13 +136,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
     setProfile(null);
     setRoles([]);
+    setActingTenantId(null);
+    setActingTenantName(null);
   };
 
   const isApproved = profile?.status === 'approved';
   const isDirector = roles.includes('director');
-  const isAdmin = roles.includes('super_admin') || roles.includes('director');
-  const isSuperAdmin = roles.includes('super_admin');
   const isPlatformAdmin = roles.includes('platform_admin');
+  const isAdmin = roles.includes('super_admin') || roles.includes('director') || isPlatformAdmin;
+  const isSuperAdmin = roles.includes('super_admin');
 
   return (
     <AuthContext.Provider
@@ -132,6 +159,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin,
         isSuperAdmin,
         isPlatformAdmin,
+        actingTenantId,
+        actingTenantName,
         signOut,
         refreshProfile,
       }}

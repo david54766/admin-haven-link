@@ -1326,6 +1326,59 @@ export type Database = {
           },
         ]
       }
+      platform_admin_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          tenant_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          tenant_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          tenant_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_admin_sessions: {
+        Row: {
+          acting_tenant_id: string
+          expires_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acting_tenant_id: string
+          expires_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acting_tenant_id?: string
+          expires_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_admin_sessions_acting_tenant_id_fkey"
+            columns: ["acting_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       positions: {
         Row: {
           created_at: string

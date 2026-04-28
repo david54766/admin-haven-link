@@ -31,13 +31,14 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import defaultLogo from '@/assets/logo.png';
 import { useBranding } from '@/hooks/useBranding';
+import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { profile, isAdmin, isDirector, isSuperAdmin, isPlatformAdmin, signOut } = useAuth();
+  const { profile, isAdmin, isDirector, isSuperAdmin, isPlatformAdmin, actingTenantId, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -70,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
     { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
     { href: '/admin/expenses', label: 'Expenses', icon: DollarSign },
     { href: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
-    ...(!isPlatformAdmin ? [{ href: '/admin/settings', label: 'Settings', icon: Settings }] : []),
+    ...((!isPlatformAdmin || actingTenantId) ? [{ href: '/admin/settings', label: 'Settings', icon: Settings }] : []),
   ];
 
   const isOnAdminRoute = location.pathname.startsWith('/admin');
@@ -108,6 +109,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <ImpersonationBanner />
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
         <div className="container flex h-16 items-center">
@@ -179,7 +181,7 @@ export function Layout({ children }: LayoutProps) {
                         )}
                       </Link>
                     </DropdownMenuItem>
-                    {!isPlatformAdmin && (
+                    {(!isPlatformAdmin || actingTenantId) && (
                       <DropdownMenuItem asChild>
                         <Link to="/admin/settings" className="flex items-center">
                           <Settings className="mr-2 h-4 w-4" />

@@ -9,8 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Plus, Building2, Users, Shield, Power, LogOut, Mail, Calendar, Trash2, AlertTriangle } from 'lucide-react';
+import { Loader2, Plus, Building2, Users, Shield, Power, LogOut, Mail, Calendar, Trash2, AlertTriangle, LogIn } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNavigate } from 'react-router-dom';
 
 interface Tenant {
   id: string;
@@ -27,7 +28,8 @@ interface Tenant {
 }
 
 export default function PlatformDashboard() {
-  const { signOut } = useAuth();
+  const { signOut, user, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -160,6 +162,31 @@ export default function PlatformDashboard() {
     setDeleteTarget(tenant);
     setDeleteStep(1);
     setDeleteConfirmText('');
+  };
+
+  const enterTenant = async (tenant: Tenant) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('platform_admin_sessions')
+        .upsert({
+          user_id: user.id,
+          acting_tenant_id: tenant.id,
+          expires_at: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      if (error) throw error;
+      await supabase.from('platform_admin_audit').insert({
+        user_id: user.id,
+        tenant_id: tenant.id,
+        action: 'enter',
+      });
+      await refreshProfile();
+      toast({ title: 'Entering tenant', description: `Acting as ${tenant.name}` });
+      navigate('/admin');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
   };
 
   const autoSlug = (name: string) => {
@@ -337,13 +364,21 @@ export default function PlatformDashboard() {
 
                     <div className="flex gap-2">
                       <Button
-                        variant={tenant.is_active ? 'outline' : 'default'}
+                        variant="default"
                         size="sm"
                         className="flex-1"
+                        onClick={() => enterTenant(tenant)}
+                        disabled={!tenant.is_active}
+                      >
+                        <LogIn className="h-4 w-4 mr-1" />
+                        Enter
+                      </Button>
+                      <Button
+                        variant={tenant.is_active ? 'outline' : 'default'}
+                        size="sm"
                         onClick={() => toggleTenant(tenant)}
                       >
-                        <Power className="h-4 w-4 mr-1" />
-                        {tenant.is_active ? 'Suspend' : 'Activate'}
+                        <Power className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="destructive"
@@ -407,6 +442,15 @@ export default function PlatformDashboard() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => enterTenant(tenant)}
+                            disabled={!tenant.is_active}
+                          >
+                            <LogIn className="h-4 w-4 mr-1" />
+                            Enter
+                          </Button>
                           <Button
                             variant={tenant.is_active ? 'outline' : 'default'}
                             size="sm"
