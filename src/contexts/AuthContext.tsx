@@ -136,13 +136,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
     setProfile(null);
     setRoles([]);
+    setActingTenantId(null);
+    setActingTenantName(null);
   };
 
   const isApproved = profile?.status === 'approved';
   const isDirector = roles.includes('director');
-  const isAdmin = roles.includes('super_admin') || roles.includes('director');
-  const isSuperAdmin = roles.includes('super_admin');
   const isPlatformAdmin = roles.includes('platform_admin');
+  const isAdmin = roles.includes('super_admin') || roles.includes('director') || isPlatformAdmin;
+  const isSuperAdmin = roles.includes('super_admin');
 
   return (
     <AuthContext.Provider
