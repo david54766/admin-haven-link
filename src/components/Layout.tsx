@@ -37,7 +37,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { profile, isAdmin, isDirector, isSuperAdmin, isPlatformAdmin, signOut } = useAuth();
+  const { profile, isAdmin, isDirector, isSuperAdmin, isPlatformAdmin, actingTenantId, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
