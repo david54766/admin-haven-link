@@ -25,7 +25,22 @@ interface Tenant {
   max_users: number | null;
   created_at: string;
   user_count?: number;
+  last_login?: string | null;
 }
+
+const formatLastLogin = (iso: string | null | undefined) => {
+  if (!iso) return 'Never';
+  const d = new Date(iso);
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return d.toLocaleDateString();
+};
 
 export default function PlatformDashboard() {
   const { signOut, user, refreshProfile } = useAuth();
@@ -64,11 +79,18 @@ export default function PlatformDashboard() {
         countMap[p.tenant_id] = (countMap[p.tenant_id] || 0) + 1;
       });
 
+      const { data: lastLogins } = await supabase.rpc('get_tenant_last_logins');
+      const loginMap: Record<string, string> = {};
+      (lastLogins || []).forEach((row: any) => {
+        if (row.tenant_id && row.last_login) loginMap[row.tenant_id] = row.last_login;
+      });
+
       const tenantsWithCounts = (data || [])
         .filter((t: any) => t.id !== '00000000-0000-0000-0000-000000000001')
         .map((t: any) => ({
           ...t,
           user_count: countMap[t.id] || 0,
+          last_login: loginMap[t.id] || null,
         }));
 
       setTenants(tenantsWithCounts);
@@ -360,6 +382,10 @@ export default function PlatformDashboard() {
                         <Calendar className="h-3.5 w-3.5 shrink-0" />
                         <span>{new Date(tenant.created_at).toLocaleDateString()}</span>
                       </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <LogIn className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">Last: {formatLastLogin(tenant.last_login)}</span>
+                      </div>
                     </div>
 
                     <div className="flex gap-2">
@@ -408,6 +434,7 @@ export default function PlatformDashboard() {
                     <TableHead>Users</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
+                    <TableHead>Last Login</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -439,6 +466,9 @@ export default function PlatformDashboard() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(tenant.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatLastLogin(tenant.last_login)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">

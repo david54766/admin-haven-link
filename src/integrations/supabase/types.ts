@@ -2561,6 +2561,13 @@ export type Database = {
           quiz_id: string
         }[]
       }
+      get_tenant_last_logins: {
+        Args: never
+        Returns: {
+          last_login: string
+          tenant_id: string
+        }[]
+      }
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
       grade_quiz_attempt: {
         Args: { p_answers: Json; p_quiz_id: string }
