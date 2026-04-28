@@ -28,7 +28,8 @@ interface Tenant {
 }
 
 export default function PlatformDashboard() {
-  const { signOut } = useAuth();
+  const { signOut, user, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
