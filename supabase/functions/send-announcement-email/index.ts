@@ -87,14 +87,35 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Resolve caller's tenant from their JWT
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
+    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { data: tenantId } = await adminClient.rpc('get_user_tenant_id', { _user_id: userData.user.id });
+    if (!tenantId) {
+      return new Response(JSON.stringify({ error: 'Tenant not found for user' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const branding = await fetchBranding(adminClient);
     const brandColor = hslToHex(branding.primary_color);
 
-    // Fetch approved staff, filtered by center if specified
+    // Fetch approved staff in caller's tenant only, filtered by center if specified
     let query = adminClient
       .from('profiles')
       .select('email, full_name')
-      .eq('status', 'approved');
+      .eq('status', 'approved')
+      .eq('tenant_id', tenantId);
 
     if (centerId) {
       query = query.eq('center_id', centerId);
