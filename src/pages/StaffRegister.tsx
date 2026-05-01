@@ -42,15 +42,16 @@ export default function StaffRegister() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!tenantId) return;
       const [centersRes, positionsRes] = await Promise.all([
-        supabase.from('centers').select('id, name').order('name'),
-        supabase.from('positions').select('name').eq('is_active', true).order('order_index'),
+        supabase.rpc('list_centers_for_tenant', { p_tenant_id: tenantId }),
+        supabase.rpc('list_positions_for_tenant', { p_tenant_id: tenantId }),
       ]);
       setCenters(centersRes.data || []);
       setPositions((positionsRes.data || []).map((p: any) => p.name));
     };
     fetchData();
-  }, []);
+  }, [tenantId]);
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),

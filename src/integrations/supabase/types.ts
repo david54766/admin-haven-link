@@ -2602,6 +2602,44 @@ export type Database = {
           slug: string
         }[]
       }
+      list_application_fields_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          created_at: string
+          field_label: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          id: string
+          is_enabled: boolean
+          is_required: boolean
+          is_system_field: boolean
+          order_index: number
+          placeholder: string | null
+          tenant_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "application_form_fields"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_centers_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      list_positions_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       resolve_tenant_by_slug: {
         Args: { p_slug: string }
         Returns: {

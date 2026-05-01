@@ -33,21 +33,18 @@ export default function Apply() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (!tenantId) {
+          setIsLoading(false);
+          return;
+        }
         const [fieldsRes, centersRes] = await Promise.all([
-          supabase
-            .from('application_form_fields')
-            .select('*')
-            .eq('is_enabled', true)
-            .order('order_index'),
-          supabase
-            .from('centers')
-            .select('id, name')
-            .order('name'),
+          supabase.rpc('list_application_fields_for_tenant', { p_tenant_id: tenantId }),
+          supabase.rpc('list_centers_for_tenant', { p_tenant_id: tenantId }),
         ]);
 
         if (fieldsRes.error) throw fieldsRes.error;
         
-        setFields((fieldsRes.data || []).map(f => ({
+        setFields((fieldsRes.data || []).map((f: any) => ({
           ...f,
           field_type: f.field_type as ApplicationFormField['field_type'],
           field_options: Array.isArray(f.field_options) 
@@ -63,7 +60,7 @@ export default function Apply() {
     };
 
     fetchData();
-  }, []);
+  }, [tenantId]);
 
   // Build dynamic zod schema based on fields
   const formSchema = useMemo(() => {
