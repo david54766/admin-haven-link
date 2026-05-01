@@ -60,7 +60,7 @@ export default function Apply() {
     };
 
     fetchData();
-  }, []);
+  }, [tenantId]);
 
   // Build dynamic zod schema based on fields
   const formSchema = useMemo(() => {
