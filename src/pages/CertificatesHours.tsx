@@ -625,12 +625,26 @@ export default function CertificatesHours() {
                               {cert.file_url && (
                                 <Button size="icon" variant="ghost" className="hover:bg-brand-blue/10 hover:text-brand-blue" onClick={async () => {
                                   const filePath = cert.file_url!;
+                                  // Open window synchronously to avoid popup blockers
+                                  const newWindow = window.open('about:blank', '_blank');
                                   const { data, error } = await supabase.storage.from('certificates').createSignedUrl(filePath, 60);
                                   if (error || !data?.signedUrl) {
+                                    if (newWindow) newWindow.close();
                                     toast({ title: 'Failed to download certificate', variant: 'destructive' });
                                     return;
                                   }
-                                  window.open(data.signedUrl, '_blank');
+                                  if (newWindow) {
+                                    newWindow.location.href = data.signedUrl;
+                                  } else {
+                                    // Fallback: trigger via anchor download
+                                    const a = document.createElement('a');
+                                    a.href = data.signedUrl;
+                                    a.target = '_blank';
+                                    a.rel = 'noopener noreferrer';
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                  }
                                 }}>
                                   <Download className="h-4 w-4" />
                                 </Button>
