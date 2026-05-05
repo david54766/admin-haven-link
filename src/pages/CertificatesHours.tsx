@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Layout } from '@/components/Layout';
@@ -623,30 +624,10 @@ export default function CertificatesHours() {
                            <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               {cert.file_url && (
-                                <Button size="icon" variant="ghost" className="hover:bg-brand-blue/10 hover:text-brand-blue" onClick={async () => {
-                                  const filePath = cert.file_url!;
-                                  // Open window synchronously to avoid popup blockers
-                                  const newWindow = window.open('about:blank', '_blank');
-                                  const { data, error } = await supabase.storage.from('certificates').createSignedUrl(filePath, 60);
-                                  if (error || !data?.signedUrl) {
-                                    if (newWindow) newWindow.close();
-                                    toast({ title: 'Failed to download certificate', variant: 'destructive' });
-                                    return;
-                                  }
-                                  if (newWindow) {
-                                    newWindow.location.href = data.signedUrl;
-                                  } else {
-                                    // Fallback: trigger via anchor download
-                                    const a = document.createElement('a');
-                                    a.href = data.signedUrl;
-                                    a.target = '_blank';
-                                    a.rel = 'noopener noreferrer';
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                  }
-                                }}>
-                                  <Download className="h-4 w-4" />
+                                <Button size="icon" variant="ghost" className="hover:bg-brand-blue/10 hover:text-brand-blue" asChild>
+                                  <Link to={`/certificate-file/${cert.id}`}>
+                                    <Download className="h-4 w-4" />
+                                  </Link>
                                 </Button>
                               )}
                               <Button
