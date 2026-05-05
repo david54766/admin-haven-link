@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ const getStoragePath = (fileUrl: string) => {
 export default function CertificateFileViewer() {
   const { certificateId } = useParams();
   const [certificate, setCertificate] = useState<CertificateFile | null>(null);
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [fileObjectUrl, setFileObjectUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -45,12 +45,12 @@ export default function CertificateFileViewer() {
 
         if (data?.file_url) {
           const filePath = getStoragePath(data.file_url);
-          const { data: signedData, error: signedError } = await supabase.storage
+          const { data: fileBlob, error: downloadError } = await supabase.storage
             .from('certificates')
-            .createSignedUrl(filePath, 3600);
+            .download(filePath);
 
-          if (signedError) throw signedError;
-          setSignedUrl(signedData.signedUrl);
+          if (downloadError) throw downloadError;
+          setFileObjectUrl(URL.createObjectURL(fileBlob));
         }
       } catch (error) {
         console.error('Error loading certificate file:', error);
@@ -60,6 +60,13 @@ export default function CertificateFileViewer() {
     };
 
     loadCertificate();
+
+    return () => {
+      setFileObjectUrl((currentUrl) => {
+        if (currentUrl) URL.revokeObjectURL(currentUrl);
+        return null;
+      });
+    };
   }, [certificateId]);
 
   const isImage = useMemo(() => {
@@ -73,18 +80,18 @@ export default function CertificateFileViewer() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Button variant="ghost" size="icon" asChild>
-              <Link to="/admin/certificates">
+              <button type="button" onClick={() => window.history.back()}>
                 <ArrowLeft className="h-4 w-4" />
-              </Link>
+              </button>
             </Button>
             <div className="min-w-0">
               <h1 className="text-2xl font-bold truncate">{certificate?.title || 'Certificate'}</h1>
               {certificate?.file_name && <p className="text-sm text-muted-foreground truncate">{certificate.file_name}</p>}
             </div>
           </div>
-          {signedUrl && (
+          {fileObjectUrl && (
             <Button asChild>
-              <a href={signedUrl} download={certificate?.file_name || undefined} rel="noopener noreferrer">
+              <a href={fileObjectUrl} download={certificate?.file_name || undefined} rel="noopener noreferrer">
                 <Download className="mr-2 h-4 w-4" />
                 Download
               </a>
@@ -98,14 +105,14 @@ export default function CertificateFileViewer() {
               <div className="flex min-h-[60vh] items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : !signedUrl ? (
+            ) : !fileObjectUrl ? (
               <div className="py-12 text-center text-muted-foreground">Certificate file not found.</div>
             ) : isImage ? (
               <div className="flex min-h-[60vh] items-center justify-center bg-muted/30 p-4">
-                <img src={signedUrl} alt={certificate?.title || 'Certificate'} className="max-h-[75vh] max-w-full rounded-md object-contain" />
+                <img src={fileObjectUrl} alt={certificate?.title || 'Certificate'} className="max-h-[75vh] max-w-full rounded-md object-contain" />
               </div>
             ) : (
-              <iframe title={certificate?.title || 'Certificate file'} src={signedUrl} className="h-[75vh] w-full rounded-md" />
+              <iframe title={certificate?.title || 'Certificate file'} src={fileObjectUrl} className="h-[75vh] w-full rounded-md" />
             )}
           </CardContent>
         </Card>
