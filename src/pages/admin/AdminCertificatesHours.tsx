@@ -16,6 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Download, Award, Clock, Search, AlertTriangle, TrendingUp, Target, Edit2, Mail, Plus } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { Link } from 'react-router-dom';
 import { HoursTimeFilter, TimePreset } from '@/components/admin/HoursTimeFilter';
 
 interface Certificate {
@@ -798,11 +799,8 @@ export default function AdminCertificatesHours() {
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               {cert.file_url ? (
-                                <Button size="sm" variant="ghost" onClick={() => {
-                                  const { data } = supabase.storage.from('certificates').getPublicUrl(cert.file_url!);
-                                  window.open(data.publicUrl, '_blank');
-                                }}>
-                                  View
+                                <Button size="sm" variant="ghost" asChild>
+                                  <Link to={`/certificate-file/${cert.id}`}>View</Link>
                                 </Button>
                               ) : null}
                               {(isExpired(cert.expiry_date) || isExpiringSoon(cert.expiry_date)) && (
