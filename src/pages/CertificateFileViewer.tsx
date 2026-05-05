@@ -30,6 +30,9 @@ export default function CertificateFileViewer() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    let createdObjectUrl: string | null = null;
+
     const loadCertificate = async () => {
       if (!certificateId) return;
 
@@ -41,7 +44,7 @@ export default function CertificateFileViewer() {
           .single();
 
         if (error) throw error;
-        setCertificate(data as CertificateFile);
+        if (isMounted) setCertificate(data as CertificateFile);
 
         if (data?.file_url) {
           const filePath = getStoragePath(data.file_url);
@@ -50,7 +53,8 @@ export default function CertificateFileViewer() {
             .download(filePath);
 
           if (downloadError) throw downloadError;
-          setFileObjectUrl(URL.createObjectURL(fileBlob));
+          createdObjectUrl = URL.createObjectURL(fileBlob);
+          if (isMounted) setFileObjectUrl(createdObjectUrl);
         }
       } catch (error) {
         console.error('Error loading certificate file:', error);
@@ -62,10 +66,8 @@ export default function CertificateFileViewer() {
     loadCertificate();
 
     return () => {
-      setFileObjectUrl((currentUrl) => {
-        if (currentUrl) URL.revokeObjectURL(currentUrl);
-        return null;
-      });
+      isMounted = false;
+      if (createdObjectUrl) URL.revokeObjectURL(createdObjectUrl);
     };
   }, [certificateId]);
 
