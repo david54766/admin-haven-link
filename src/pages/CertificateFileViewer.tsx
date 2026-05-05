@@ -177,7 +177,7 @@ function PdfPreview({ file }: { file: Blob }) {
           canvas.className = 'mx-auto mb-4 max-w-full rounded-md border bg-background shadow-sm';
           containerRef.current.appendChild(canvas);
 
-          await page.render({ canvasContext: context, viewport }).promise;
+          await page.render({ canvas, canvasContext: context, viewport }).promise;
         }
       } catch (renderError) {
         console.error('Error rendering PDF:', renderError);
