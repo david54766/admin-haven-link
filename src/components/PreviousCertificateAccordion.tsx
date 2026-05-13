@@ -70,12 +70,10 @@ export function PreviousCertificateAccordion({ certificateId }: { certificateId:
                 <div className="text-[10px] text-muted-foreground mt-1">Archived {format(new Date(r.archived_at), 'MMM d, yyyy h:mm a')}</div>
               </div>
               {r.file_url && (
-                <Button asChild variant="outline" size="sm">
-                  <a href={`/certificate-file/${encodeURIComponent(r.file_url)}/${encodeURIComponent(r.file_name || 'certificate')}`} target="_blank" rel="noopener noreferrer">
-                    <FileText className="h-3 w-3 mr-1" />
-                    View
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
+                <Button variant="outline" size="sm" onClick={() => openHistoryFile(r.file_url!)}>
+                  <FileText className="h-3 w-3 mr-1" />
+                  View
+                  <ExternalLink className="h-3 w-3 ml-1" />
                 </Button>
               )}
             </div>
