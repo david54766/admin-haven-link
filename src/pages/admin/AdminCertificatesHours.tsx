@@ -14,10 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Award, Clock, Search, AlertTriangle, TrendingUp, Target, Edit2, Mail, Plus } from 'lucide-react';
+import { Download, Award, Clock, Search, AlertTriangle, TrendingUp, Target, Edit2, Mail, Plus, RefreshCw } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { HoursTimeFilter, TimePreset } from '@/components/admin/HoursTimeFilter';
+import { UpdateCertificateDialog } from '@/components/UpdateCertificateDialog';
+import { PreviousCertificateAccordion } from '@/components/PreviousCertificateAccordion';
 
 interface Certificate {
   id: string;
