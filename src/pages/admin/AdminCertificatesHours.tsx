@@ -767,6 +767,7 @@ export default function AdminCertificatesHours() {
                     </TableHeader>
                     <TableBody>
                       {filteredCertificates.map((cert) => (
+                        <>
                         <TableRow key={cert.id}>
                           <TableCell>
                             <div>
@@ -801,12 +802,21 @@ export default function AdminCertificatesHours() {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
+                            <div className="flex items-center justify-end gap-1 flex-wrap">
                               {cert.file_url ? (
                                 <Button size="sm" variant="ghost" asChild>
                                   <Link to={`/certificate-file/${cert.id}`}>View</Link>
                                 </Button>
                               ) : null}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs"
+                                onClick={() => { setUpdatingCert(cert); setUpdateDialogOpen(true); }}
+                              >
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Update
+                              </Button>
                               {(isExpired(cert.expiry_date) || isExpiringSoon(cert.expiry_date)) && (
                                 <Button
                                   size="sm"
@@ -822,6 +832,12 @@ export default function AdminCertificatesHours() {
                             </div>
                           </TableCell>
                         </TableRow>
+                        <TableRow key={`${cert.id}-history`} className="bg-muted/10 hover:bg-muted/10">
+                          <TableCell colSpan={7} className="py-0">
+                            <PreviousCertificateAccordion certificateId={cert.id} />
+                          </TableCell>
+                        </TableRow>
+                        </>
                       ))}
                     </TableBody>
                   </Table>
