@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Layout } from '@/components/Layout';
@@ -14,10 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Award, Clock, Search, AlertTriangle, TrendingUp, Target, Edit2, Mail, Plus } from 'lucide-react';
+import { Download, Award, Clock, Search, AlertTriangle, TrendingUp, Target, Edit2, Mail, Plus, RefreshCw } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { HoursTimeFilter, TimePreset } from '@/components/admin/HoursTimeFilter';
+import { UpdateCertificateDialog } from '@/components/UpdateCertificateDialog';
+import { PreviousCertificateAccordion } from '@/components/PreviousCertificateAccordion';
 
 interface Certificate {
   id: string;
@@ -30,6 +32,7 @@ interface Certificate {
   file_url: string | null;
   file_name: string | null;
   notes: string | null;
+  hours: number | null;
   created_at: string;
   profile?: {
     full_name: string;
@@ -116,6 +119,8 @@ export default function AdminCertificatesHours() {
   const [addCertFile, setAddCertFile] = useState<File | null>(null);
   const [addCertSaving, setAddCertSaving] = useState(false);
   const [staffList, setStaffList] = useState<{ user_id: string; full_name: string; email: string }[]>([]);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [updatingCert, setUpdatingCert] = useState<Certificate | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -763,7 +768,8 @@ export default function AdminCertificatesHours() {
                     </TableHeader>
                     <TableBody>
                       {filteredCertificates.map((cert) => (
-                        <TableRow key={cert.id}>
+                        <FragmentRow key={cert.id}>
+                        <TableRow>
                           <TableCell>
                             <div>
                               <p className="font-medium">{cert.profile?.full_name || 'Unknown'}</p>
@@ -797,12 +803,21 @@ export default function AdminCertificatesHours() {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
+                            <div className="flex items-center justify-end gap-1 flex-wrap">
                               {cert.file_url ? (
                                 <Button size="sm" variant="ghost" asChild>
                                   <Link to={`/certificate-file/${cert.id}`}>View</Link>
                                 </Button>
                               ) : null}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs"
+                                onClick={() => { setUpdatingCert(cert); setUpdateDialogOpen(true); }}
+                              >
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Update
+                              </Button>
                               {(isExpired(cert.expiry_date) || isExpiringSoon(cert.expiry_date)) && (
                                 <Button
                                   size="sm"
@@ -818,6 +833,12 @@ export default function AdminCertificatesHours() {
                             </div>
                           </TableCell>
                         </TableRow>
+                        <TableRow key={`${cert.id}-history`} className="bg-muted/10 hover:bg-muted/10">
+                          <TableCell colSpan={7} className="py-0">
+                            <PreviousCertificateAccordion certificateId={cert.id} />
+                          </TableCell>
+                        </TableRow>
+                        </FragmentRow>
                       ))}
                     </TableBody>
                   </Table>
@@ -1166,6 +1187,12 @@ export default function AdminCertificatesHours() {
             </div>
           </DialogContent>
         </Dialog>
+        <UpdateCertificateDialog
+          open={updateDialogOpen}
+          onOpenChange={setUpdateDialogOpen}
+          certificate={updatingCert}
+          onUpdated={fetchData}
+        />
       </div>
     </Layout>
   );

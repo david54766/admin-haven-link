@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,8 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-import { Award, Clock, Plus, Trash2, Download, Calendar, FileText, TrendingUp, Target, Pencil } from 'lucide-react';
+import { Award, Clock, Plus, Trash2, Download, Calendar, FileText, TrendingUp, Target, Pencil, RefreshCw } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { UpdateCertificateDialog } from '@/components/UpdateCertificateDialog';
+import { PreviousCertificateAccordion } from '@/components/PreviousCertificateAccordion';
 
 interface Certificate {
   id: string;
@@ -91,6 +93,8 @@ export default function CertificatesHours() {
   // Certificate form
   const [certDialogOpen, setCertDialogOpen] = useState(false);
   const [editingCert, setEditingCert] = useState<Certificate | null>(null);
+  const [updatingCert, setUpdatingCert] = useState<Certificate | null>(null);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [certUploading, setCertUploading] = useState(false);
   const [certTitle, setCertTitle] = useState('');
   const [certOrg, setCertOrg] = useState('');
@@ -586,7 +590,8 @@ export default function CertificatesHours() {
                     </TableHeader>
                     <TableBody>
                       {certificates.map((cert) => (
-                        <TableRow key={cert.id} className="hover:bg-accent/30">
+                        <FragmentRow key={cert.id}>
+                        <TableRow className="hover:bg-accent/30">
                           <TableCell>
                             <div>
                               <p className="font-medium">{cert.title}</p>
@@ -622,7 +627,7 @@ export default function CertificatesHours() {
                             ) : '—'}
                           </TableCell>
                            <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1 flex-wrap">
                               {cert.file_url && (
                                 <Button size="icon" variant="ghost" className="hover:bg-brand-blue/10 hover:text-brand-blue" asChild>
                                   <Link to={`/certificate-file/${cert.id}`}>
@@ -630,6 +635,15 @@ export default function CertificatesHours() {
                                   </Link>
                                 </Button>
                               )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs"
+                                onClick={() => { setUpdatingCert(cert as any); setUpdateDialogOpen(true); }}
+                              >
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Update
+                              </Button>
                               <Button
                                 size="icon"
                                 variant="ghost"
@@ -649,6 +663,12 @@ export default function CertificatesHours() {
                             </div>
                           </TableCell>
                         </TableRow>
+                        <TableRow className="bg-muted/10 hover:bg-muted/10">
+                          <TableCell colSpan={6} className="py-0">
+                            <PreviousCertificateAccordion certificateId={cert.id} />
+                          </TableCell>
+                        </TableRow>
+                        </FragmentRow>
                       ))}
                     </TableBody>
                   </Table>
@@ -889,6 +909,12 @@ export default function CertificatesHours() {
             </Card>
           </TabsContent>
         </Tabs>
+        <UpdateCertificateDialog
+          open={updateDialogOpen}
+          onOpenChange={setUpdateDialogOpen}
+          certificate={updatingCert as any}
+          onUpdated={fetchData}
+        />
       </div>
     </Layout>
   );

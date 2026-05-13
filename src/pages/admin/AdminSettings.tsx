@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Building, FileType, Settings2, RefreshCw, Palette, ClipboardList, Clock, Database, Download, Link2, Copy, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, Building, FileType, Settings2, RefreshCw, Palette, ClipboardList, Clock, Database, Download, Link2, Copy, Check, Award } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Center, DocumentType } from '@/types/database';
@@ -23,6 +23,7 @@ import { PositionsManager } from '@/components/admin/PositionsManager';
 import { useComplianceSettings, ComplianceConfig } from '@/hooks/useComplianceSettings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BackupManager } from '@/components/admin/BackupManager';
+import { CertificateRemindersSettings } from '@/components/admin/CertificateRemindersSettings';
 
 export default function AdminSettings() {
   const { isAdmin } = useAuth();
@@ -324,6 +325,10 @@ export default function AdminSettings() {
             <TabsTrigger value="compliance" className="flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
               Hours Compliance
+            </TabsTrigger>
+            <TabsTrigger value="certificates" className="flex items-center gap-1.5">
+              <Award className="h-4 w-4" />
+              Certificates
             </TabsTrigger>
             <TabsTrigger value="organization" className="flex items-center gap-1.5">
               <Building className="h-4 w-4" />
@@ -758,6 +763,11 @@ export default function AdminSettings() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Certificates Tab */}
+          <TabsContent value="certificates">
+            <CertificateRemindersSettings />
           </TabsContent>
 
           {/* Organization Tab */}
