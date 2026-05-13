@@ -32,6 +32,7 @@ interface Certificate {
   file_url: string | null;
   file_name: string | null;
   notes: string | null;
+  hours: number | null;
   created_at: string;
   profile?: {
     full_name: string;
