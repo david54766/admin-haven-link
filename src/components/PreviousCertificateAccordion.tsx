@@ -19,6 +19,26 @@ interface HistoryRow {
   archived_at: string;
 }
 
+const getStoragePath = (fileUrl: string) => {
+  if (!fileUrl.startsWith('http')) return fileUrl;
+  const marker = '/storage/v1/object/public/certificates/';
+  const i = fileUrl.indexOf(marker);
+  if (i === -1) return fileUrl;
+  return decodeURIComponent(fileUrl.slice(i + marker.length).split('?')[0]);
+};
+
+async function openHistoryFile(fileUrl: string) {
+  try {
+    const path = getStoragePath(fileUrl);
+    const { data, error } = await supabase.storage.from('certificates').createSignedUrl(path, 60 * 10);
+    if (error) throw error;
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  } catch (e) {
+    console.error('Failed to open file', e);
+    window.open(fileUrl, '_blank', 'noopener,noreferrer');
+  }
+}
+
 export function PreviousCertificateAccordion({ certificateId }: { certificateId: string }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<HistoryRow[]>([]);
