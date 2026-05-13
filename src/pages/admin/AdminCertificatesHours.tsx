@@ -1186,6 +1186,12 @@ export default function AdminCertificatesHours() {
             </div>
           </DialogContent>
         </Dialog>
+        <UpdateCertificateDialog
+          open={updateDialogOpen}
+          onOpenChange={setUpdateDialogOpen}
+          certificate={updatingCert}
+          onUpdated={fetchData}
+        />
       </div>
     </Layout>
   );
