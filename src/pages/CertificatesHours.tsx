@@ -93,6 +93,8 @@ export default function CertificatesHours() {
   // Certificate form
   const [certDialogOpen, setCertDialogOpen] = useState(false);
   const [editingCert, setEditingCert] = useState<Certificate | null>(null);
+  const [updatingCert, setUpdatingCert] = useState<Certificate | null>(null);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [certUploading, setCertUploading] = useState(false);
   const [certTitle, setCertTitle] = useState('');
   const [certOrg, setCertOrg] = useState('');
