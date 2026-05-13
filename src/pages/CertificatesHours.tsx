@@ -588,7 +588,8 @@ export default function CertificatesHours() {
                     </TableHeader>
                     <TableBody>
                       {certificates.map((cert) => (
-                        <TableRow key={cert.id} className="hover:bg-accent/30">
+                        <FragmentRow key={cert.id}>
+                        <TableRow className="hover:bg-accent/30">
                           <TableCell>
                             <div>
                               <p className="font-medium">{cert.title}</p>
@@ -624,7 +625,7 @@ export default function CertificatesHours() {
                             ) : '—'}
                           </TableCell>
                            <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1 flex-wrap">
                               {cert.file_url && (
                                 <Button size="icon" variant="ghost" className="hover:bg-brand-blue/10 hover:text-brand-blue" asChild>
                                   <Link to={`/certificate-file/${cert.id}`}>
@@ -632,6 +633,15 @@ export default function CertificatesHours() {
                                   </Link>
                                 </Button>
                               )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs"
+                                onClick={() => { setUpdatingCert(cert as any); setUpdateDialogOpen(true); }}
+                              >
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Update
+                              </Button>
                               <Button
                                 size="icon"
                                 variant="ghost"
@@ -651,6 +661,12 @@ export default function CertificatesHours() {
                             </div>
                           </TableCell>
                         </TableRow>
+                        <TableRow className="bg-muted/10 hover:bg-muted/10">
+                          <TableCell colSpan={6} className="py-0">
+                            <PreviousCertificateAccordion certificateId={cert.id} />
+                          </TableCell>
+                        </TableRow>
+                        </FragmentRow>
                       ))}
                     </TableBody>
                   </Table>
