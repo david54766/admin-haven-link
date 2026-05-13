@@ -23,6 +23,7 @@ import { PositionsManager } from '@/components/admin/PositionsManager';
 import { useComplianceSettings, ComplianceConfig } from '@/hooks/useComplianceSettings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BackupManager } from '@/components/admin/BackupManager';
+import { CertificateRemindersSettings } from '@/components/admin/CertificateRemindersSettings';
 
 export default function AdminSettings() {
   const { isAdmin } = useAuth();
