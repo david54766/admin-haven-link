@@ -909,6 +909,12 @@ export default function CertificatesHours() {
             </Card>
           </TabsContent>
         </Tabs>
+        <UpdateCertificateDialog
+          open={updateDialogOpen}
+          onOpenChange={setUpdateDialogOpen}
+          certificate={updatingCert as any}
+          onUpdated={fetchData}
+        />
       </div>
     </Layout>
   );
