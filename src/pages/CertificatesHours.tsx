@@ -15,8 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-import { Award, Clock, Plus, Trash2, Download, Calendar, FileText, TrendingUp, Target, Pencil } from 'lucide-react';
+import { Award, Clock, Plus, Trash2, Download, Calendar, FileText, TrendingUp, Target, Pencil, RefreshCw } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { UpdateCertificateDialog } from '@/components/UpdateCertificateDialog';
+import { PreviousCertificateAccordion } from '@/components/PreviousCertificateAccordion';
 
 interface Certificate {
   id: string;
