@@ -326,6 +326,10 @@ export default function AdminSettings() {
               <Clock className="h-4 w-4" />
               Hours Compliance
             </TabsTrigger>
+            <TabsTrigger value="certificates" className="flex items-center gap-1.5">
+              <Award className="h-4 w-4" />
+              Certificates
+            </TabsTrigger>
             <TabsTrigger value="organization" className="flex items-center gap-1.5">
               <Building className="h-4 w-4" />
               Organization
