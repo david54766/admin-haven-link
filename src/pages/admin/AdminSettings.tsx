@@ -765,6 +765,11 @@ export default function AdminSettings() {
             </Card>
           </TabsContent>
 
+          {/* Certificates Tab */}
+          <TabsContent value="certificates">
+            <CertificateRemindersSettings />
+          </TabsContent>
+
           {/* Organization Tab */}
           <TabsContent value="organization">
             <div className="space-y-6">
