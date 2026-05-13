@@ -837,7 +837,7 @@ export default function AdminCertificatesHours() {
                             <PreviousCertificateAccordion certificateId={cert.id} />
                           </TableCell>
                         </TableRow>
-                        </>
+                        </FragmentRow>
                       ))}
                     </TableBody>
                   </Table>
