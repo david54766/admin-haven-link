@@ -767,8 +767,8 @@ export default function AdminCertificatesHours() {
                     </TableHeader>
                     <TableBody>
                       {filteredCertificates.map((cert) => (
-                        <>
-                        <TableRow key={cert.id}>
+                        <FragmentRow key={cert.id}>
+                        <TableRow>
                           <TableCell>
                             <div>
                               <p className="font-medium">{cert.profile?.full_name || 'Unknown'}</p>
