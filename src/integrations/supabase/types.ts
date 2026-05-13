@@ -244,6 +244,36 @@ export type Database = {
           },
         ]
       }
+      certificate_expiry_notifications: {
+        Row: {
+          certificate_id: string
+          days_window: number
+          id: string
+          sent_at: string
+          sent_on: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          certificate_id: string
+          days_window: number
+          id?: string
+          sent_at?: string
+          sent_on?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          certificate_id?: string
+          days_window?: number
+          id?: string
+          sent_at?: string
+          sent_on?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       certificate_templates: {
         Row: {
           background_image_url: string | null
@@ -1853,6 +1883,68 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_certificate_history: {
+        Row: {
+          archived_at: string
+          archived_by: string | null
+          certificate_id: string
+          certificate_number: string | null
+          expiry_date: string | null
+          file_name: string | null
+          file_url: string | null
+          hours: number | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          notes: string | null
+          tenant_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_by?: string | null
+          certificate_id: string
+          certificate_number?: string | null
+          expiry_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          hours?: number | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          notes?: string | null
+          tenant_id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          archived_by?: string | null
+          certificate_id?: string
+          certificate_number?: string | null
+          expiry_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          hours?: number | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          notes?: string | null
+          tenant_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_certificate_history_certificate_id_fkey"
+            columns: ["certificate_id"]
+            isOneToOne: false
+            referencedRelation: "staff_certificates"
             referencedColumns: ["id"]
           },
         ]

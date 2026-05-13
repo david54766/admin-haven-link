@@ -1,46 +1,94 @@
-## Plan: Add "Monthly In-Service Training" Track for Miracle Grow
+## Goal
 
-Create a new training track with 12 monthly modules, each containing one ProCare external training link requiring certificate upload.
+1. Per-tenant **certificate expiry reminders** at 7/15/30/60/90 days before expiry, automated daily, with each window toggleable in the admin **Settings** tab.
+2. **Update** button on each certificate (admin + staff views) that records new info + uploads a new file, while **archiving** the prior file/info into a collapsible "Previous certificate" section.
 
-### Tenant
-- **Miracle Grow** (`f4e0c94e-56f5-41d0-9bc3-f403524474a5`)
+## Scope
 
-### Track
-- **Title**: Monthly In-Service Training
-- **auto_assign**: true
-- **is_priority**: false
-- **certificate_enabled**: true
-- **is_active**: true
+### A. Reminder windows (per tenant, configurable)
 
-### Modules (12, ordered Jan→Dec)
+- New `system_settings` row per tenant with `key = 'certificate_expiry_reminders'`, value:
+  ```json
+  { "enabled": true, "windows": [7, 15, 30, 60, 90] }
+  ```
+  Defaults applied if missing.
+- New tab in `AdminSettings.tsx` ("Certificates" or merged into Compliance) with checkboxes for each of the 5 windows + a master enable toggle. Saves to `system_settings`.
 
-| # | Module | External Training Title | URL |
-|---|---|---|---|
-| 1 | Jan | Classroom Management | procareprofessionaldevelopment.com/course/classroom-mgmt-2 |
-| 2 | Feb | Behavior Guidance | .../course/behavior-communication |
-| 3 | Mar | Curriculum / Lesson Planning | .../course/curriculum |
-| 4 | Apr | Parent Engagement | .../course/building-trust-with-parents-through-engagement |
-| 5 | May | Family Style Dining | .../course/family-style-dining |
-| 6 | Jun | Observing, Assessing, and Documenting | .../course/dapobservation |
-| 7 | Jul | Creating Smooth Transitions | .../course/transitions-music-movement |
-| 8 | Aug | Environment | .../course/environment |
-| 9 | Sep | Sensitive Conversations | .../course/navigating-sensitive-conversations |
-| 10 | Oct | Trauma Informed Strategies | .../course/trauma-informed-strategies |
-| 11 | Nov | Self Regulation and Self Esteem | .../course/teaching-self-regulation-and-self-esteem |
-| 12 | Dec | Disease Prevention | .../course/stop-the-spread-germs |
+### B. Automated daily job
 
-### External Training Items
-Each module gets one entry in `module_external_trainings`:
-- `requires_certificate`: **true** (paid ProCare courses, matching prior decision)
-- `is_required`: true
-- `order_index`: 0
+- Edge function `send-certificate-expiry-notifications` rewritten to **iterate every active tenant**:
+  - Read tenant's settings (defaults if absent); skip if disabled.
+  - For scheduled mode, only notify certificates whose `expiry_date - today` exactly matches one of the enabled windows.
+  - Use per-tenant branding from `tenants.branding` (name/logo/color) instead of global `system_settings.branding`.
+  - Fetch admin emails scoped to that tenant via `user_roles` joined with `profiles.tenant_id`.
+  - Insert into new `certificate_expiry_notifications` table to dedupe sends per (certificate_id, days_window, date).
+  - Manual mode (existing button / per-user) keeps behaviour: send all upcoming within 90 days regardless of window match.
+- Migration adds `pg_cron` daily job (8am UTC) calling the function with `{"mode":"scheduled"}`.
 
-### Implementation
-Single SQL insert (data only, via insert tool — no schema change needed):
-1. INSERT into `training_tracks` (returning id)
-2. INSERT 12 rows into `modules` (one per month, order_index 0–11)
-3. INSERT 12 rows into `module_external_trainings`
+### C. Update certificate + previous-certificate archive
 
-All rows tagged with `tenant_id = f4e0c94e-56f5-41d0-9bc3-f403524474a5`.
+- New table `staff_certificate_history`:
+  - `id, certificate_id (fk), user_id, tenant_id, title, issuing_organization, issue_date, expiry_date, certificate_number, file_url, file_name, hours, notes, archived_at`
+  - RLS: admins (own tenant) full access; staff can SELECT own rows.
+- Reusable `UpdateCertificateDialog` component (used in both admin and staff certificate pages):
+  - Prefilled with current values; required: new file (or option to keep file).
+  - On save: insert snapshot of current cert into `staff_certificate_history`, then `update` `staff_certificates` with new values.
+- Both `AdminCertificatesHours.tsx` and `CertificatesHours.tsx`:
+  - Add **Update** action button per certificate row/card.
+  - Render a collapsible **"Previous certificate"** section (Accordion / Collapsible) under each certificate, listing all archived versions with file links, dates, and metadata.
 
-No code/UI changes required — the existing AdminContent and staff Training pages will display the new track automatically.
+### D. Cleanup
+
+- Update toast copy on "Send Expiry Notifications" button to reflect configurable windows.
+
+## Technical details
+
+**Migration 1 — history + notification log:**
+```sql
+CREATE TABLE public.staff_certificate_history ( ... );
+ALTER TABLE ... ENABLE RLS;
+CREATE POLICY "Admins manage history" ON public.staff_certificate_history
+  FOR ALL TO authenticated
+  USING (is_admin(auth.uid()) AND tenant_id = get_user_tenant_id(auth.uid()))
+  WITH CHECK (is_admin(auth.uid()) AND tenant_id = get_user_tenant_id(auth.uid()));
+CREATE POLICY "Users view own history" ON public.staff_certificate_history
+  FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE TRIGGER set_tenant_id_on_staff_certificate_history
+  BEFORE INSERT ON public.staff_certificate_history
+  FOR EACH ROW EXECUTE FUNCTION set_tenant_id_from_user();
+
+CREATE TABLE public.certificate_expiry_notifications (
+  id uuid PK default gen_random_uuid(),
+  certificate_id uuid, user_id uuid, tenant_id uuid,
+  days_window int, sent_on date default current_date, sent_at timestamptz default now(),
+  UNIQUE (certificate_id, days_window, sent_on)
+);
+```
+
+**Migration 2 — pg_cron job** (uses `supabase--insert` with anon key in headers since it contains project URL):
+```sql
+SELECT cron.schedule('certificate-expiry-daily', '0 8 * * *', $$
+  SELECT net.http_post(
+    url:='https://hocgvjyjrzlppjereirh.supabase.co/functions/v1/send-certificate-expiry-notifications',
+    headers:='{"Content-Type":"application/json","Authorization":"Bearer <ANON>"}'::jsonb,
+    body:='{"mode":"scheduled"}'::jsonb
+  );
+$$);
+```
+
+**Edge function rewrite** (`supabase/functions/send-certificate-expiry-notifications/index.ts`):
+- Loop tenants → load settings → load expiring certs → match windows → check `certificate_expiry_notifications` for dedupe → send via Resend with per-tenant branding → record send.
+
+**Frontend files touched:**
+- `src/pages/admin/AdminSettings.tsx` — new Certificates tab.
+- `src/components/admin/CertificateRemindersSettings.tsx` (new).
+- `src/components/UpdateCertificateDialog.tsx` (new, reusable).
+- `src/components/PreviousCertificateAccordion.tsx` (new, reusable).
+- `src/pages/admin/AdminCertificatesHours.tsx` — Update button + history accordion.
+- `src/pages/CertificatesHours.tsx` — Update button + history accordion (staff view).
+
+## Out of scope
+
+- SMS/push notifications.
+- Per-staff window overrides (windows are tenant-wide).
+- Editing/deleting archived versions (read-only history).
