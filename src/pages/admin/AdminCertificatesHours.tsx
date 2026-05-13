@@ -118,6 +118,8 @@ export default function AdminCertificatesHours() {
   const [addCertFile, setAddCertFile] = useState<File | null>(null);
   const [addCertSaving, setAddCertSaving] = useState(false);
   const [staffList, setStaffList] = useState<{ user_id: string; full_name: string; email: string }[]>([]);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [updatingCert, setUpdatingCert] = useState<Certificate | null>(null);
 
   useEffect(() => {
     fetchData();
