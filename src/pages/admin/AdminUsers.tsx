@@ -719,7 +719,11 @@ export default function AdminUsers() {
 
                 <div>
                   <Label htmlFor="role">Role</Label>
-                  <Select value={editRole} onValueChange={setEditRole}>
+                  <Select
+                    value={editRole}
+                    onValueChange={setEditRole}
+                    disabled={selectedUser?.user_id === user?.id}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -734,7 +738,9 @@ export default function AdminUsers() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Directors can manage users and content but cannot access settings or edit Super Admins.
+                    {selectedUser?.user_id === user?.id
+                      ? 'You cannot change your own role. Ask another Super Admin to update it.'
+                      : 'Directors can manage users and content but cannot access settings or edit Super Admins.'}
                   </p>
                 </div>
 
