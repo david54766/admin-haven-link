@@ -215,7 +215,11 @@ export default function AdminUsers() {
       if (profileError) throw profileError;
 
       // Update role - use upsert to avoid delete/insert race condition
-      if (editRole) {
+      // Block self-role change to prevent admins from locking themselves out
+      const isSelf = selectedUser.user_id === user?.id;
+      if (isSelf) {
+        // skip role mutations entirely
+      } else if (editRole) {
         // First, delete any existing roles for this user that aren't the new role
         const { error: deleteOldRolesError } = await supabase
           .from('user_roles')
