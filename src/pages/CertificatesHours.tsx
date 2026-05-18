@@ -125,7 +125,7 @@ export default function CertificatesHours() {
 
   const fetchData = async () => {
     try {
-      const [certRes, hoursRes, goalRes, trackCertRes] = await Promise.all([
+      const [certRes, hoursRes, goalRes, trackCertRes, moduleCertRes] = await Promise.all([
         supabase
           .from('staff_certificates')
           .select('*')
@@ -144,14 +144,21 @@ export default function CertificatesHours() {
           .maybeSingle(),
         supabase
           .from('track_certificates')
-          .select('id, user_id, track_title, hours_earned, issued_at')
+          .select('id, user_id, track_title, hours_earned, issued_at, certificate_number, expiry_date')
+          .eq('user_id', user!.id)
+          .order('issued_at', { ascending: false }),
+        supabase
+          .from('module_certificates')
+          .select('id, user_id, track_title, module_title, hours_earned, issued_at, certificate_number, expiry_date')
           .eq('user_id', user!.id)
           .order('issued_at', { ascending: false }),
       ]);
 
       setCertificates((certRes.data || []) as Certificate[]);
       setHoursLog((hoursRes.data || []) as HoursLog[]);
-      setTrackCertificates((trackCertRes.data || []) as TrackCertificate[]);
+      const tracks = ((trackCertRes.data || []) as any[]).map((t) => ({ ...t, source: 'track' as const }));
+      const mods = ((moduleCertRes.data || []) as any[]).map((m) => ({ ...m, source: 'module' as const }));
+      setTrackCertificates([...tracks, ...mods] as TrackCertificate[]);
       setTrainingGoal(goalRes.data as TrainingGoal | null);
     } catch (error) {
       console.error('Error fetching data:', error);
