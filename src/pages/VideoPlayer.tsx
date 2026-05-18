@@ -21,12 +21,32 @@ export default function VideoPlayerPage() {
   const [progress, setProgress] = useState<VideoProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [watchedSeconds, setWatchedSeconds] = useState(0);
+  const watchTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (videoId && user) {
       fetchVideoData();
     }
   }, [videoId, user]);
+
+  // Tick a watch timer while the page is open so we can gate Mark Complete
+  // even for YouTube/Vimeo embeds where we don't receive onProgress events.
+  useEffect(() => {
+    watchTimerRef.current = window.setInterval(() => {
+      setWatchedSeconds((s) => s + 1);
+    }, 1000);
+    return () => {
+      if (watchTimerRef.current) window.clearInterval(watchTimerRef.current);
+    };
+  }, []);
+
+  // Seed watched seconds from saved progress
+  useEffect(() => {
+    if (progress?.last_position_seconds) {
+      setWatchedSeconds((s) => Math.max(s, progress.last_position_seconds || 0));
+    }
+  }, [progress]);
 
   const fetchVideoData = async () => {
     try {
