@@ -583,7 +583,7 @@ export default function CertificatesHours() {
               <CardContent>
                 {isLoading ? (
                   <p className="text-muted-foreground">Loading...</p>
-                ) : certificates.length === 0 ? (
+                ) : certificates.length === 0 && trackCertificates.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="mx-auto w-16 h-16 rounded-full bg-brand-green/20 flex items-center justify-center mb-4">
                       <Award className="h-8 w-8 text-brand-green" />
