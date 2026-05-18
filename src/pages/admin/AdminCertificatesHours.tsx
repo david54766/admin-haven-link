@@ -746,6 +746,17 @@ export default function AdminCertificatesHours() {
                     <Download className="mr-2 h-4 w-4" />
                     Export CSV
                   </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const ids = Array.from(new Set(filteredCertificates.map((c) => c.user_id))).filter(Boolean);
+                      const qs = ids.length ? `?userIds=${ids.join(',')}` : '';
+                      window.open(`/certificates/print${qs}`, '_blank');
+                    }}
+                  >
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Download PDF Batch
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
