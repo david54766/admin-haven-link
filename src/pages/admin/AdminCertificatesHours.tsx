@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Award, Clock, Search, AlertTriangle, TrendingUp, Target, Edit2, Mail, Plus, RefreshCw } from 'lucide-react';
+import { Download, Award, Clock, Search, AlertTriangle, TrendingUp, Target, Edit2, Mail, Plus, RefreshCw, Printer, FileDown } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { HoursTimeFilter, TimePreset } from '@/components/admin/HoursTimeFilter';
@@ -746,6 +746,17 @@ export default function AdminCertificatesHours() {
                     <Download className="mr-2 h-4 w-4" />
                     Export CSV
                   </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const ids = Array.from(new Set(filteredCertificates.map((c) => c.user_id))).filter(Boolean);
+                      const qs = ids.length ? `?userIds=${ids.join(',')}` : '';
+                      window.open(`/certificates/print${qs}`, '_blank');
+                    }}
+                  >
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Download PDF Batch
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -809,6 +820,16 @@ export default function AdminCertificatesHours() {
                                   <Link to={`/certificate-file/${cert.id}`}>View</Link>
                                 </Button>
                               ) : null}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-xs"
+                                onClick={() => window.open(`/certificates/print?userIds=${cert.user_id}`, '_blank')}
+                                title="Download PDF for this staff member"
+                              >
+                                <Printer className="h-3 w-3 mr-1" />
+                                PDF
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
