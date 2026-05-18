@@ -71,8 +71,11 @@ export default function VideoPlayerPage() {
   };
 
   const updateProgress = async (percentComplete: number, positionSeconds: number) => {
-    if (!user || !videoId || isSaving) return;
+    if (!user || !videoId) return;
 
+    setWatchedSeconds((s) => Math.max(s, positionSeconds));
+
+    if (isSaving) return;
     // Only save every 10% or when complete
     if (percentComplete % 10 !== 0 && percentComplete < 95) return;
 
