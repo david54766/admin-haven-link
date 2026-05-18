@@ -31,6 +31,7 @@ import QuizPlayerPage from "./pages/QuizPlayer";
 import HomeworkSubmissionPage from "./pages/HomeworkSubmission";
 import Documents from "./pages/Documents";
 import CertificatesHours from "./pages/CertificatesHours";
+import CertificatesBatchPrint from "./pages/CertificatesBatchPrint";
 import CertificateFileViewer from "./pages/CertificateFileViewer";
 import Reflections from "./pages/Reflections";
 import Checklists from "./pages/Checklists";
