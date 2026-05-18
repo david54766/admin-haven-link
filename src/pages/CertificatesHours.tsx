@@ -49,8 +49,12 @@ interface TrackCertificate {
   id: string;
   user_id: string;
   track_title: string;
+  module_title?: string | null;
   hours_earned: number;
   issued_at: string;
+  certificate_number?: string | null;
+  expiry_date?: string | null;
+  source?: 'track' | 'module';
 }
 
 interface UnifiedHoursEntry {
