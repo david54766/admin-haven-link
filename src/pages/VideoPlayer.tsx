@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,12 +21,32 @@ export default function VideoPlayerPage() {
   const [progress, setProgress] = useState<VideoProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [watchedSeconds, setWatchedSeconds] = useState(0);
+  const watchTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (videoId && user) {
       fetchVideoData();
     }
   }, [videoId, user]);
+
+  // Tick a watch timer while the page is open so we can gate Mark Complete
+  // even for YouTube/Vimeo embeds where we don't receive onProgress events.
+  useEffect(() => {
+    watchTimerRef.current = window.setInterval(() => {
+      setWatchedSeconds((s) => s + 1);
+    }, 1000);
+    return () => {
+      if (watchTimerRef.current) window.clearInterval(watchTimerRef.current);
+    };
+  }, []);
+
+  // Seed watched seconds from saved progress
+  useEffect(() => {
+    if (progress?.last_position_seconds) {
+      setWatchedSeconds((s) => Math.max(s, progress.last_position_seconds || 0));
+    }
+  }, [progress]);
 
   const fetchVideoData = async () => {
     try {
@@ -51,8 +71,11 @@ export default function VideoPlayerPage() {
   };
 
   const updateProgress = async (percentComplete: number, positionSeconds: number) => {
-    if (!user || !videoId || isSaving) return;
+    if (!user || !videoId) return;
 
+    setWatchedSeconds((s) => Math.max(s, positionSeconds));
+
+    if (isSaving) return;
     // Only save every 10% or when complete
     if (percentComplete % 10 !== 0 && percentComplete < 95) return;
 
@@ -156,6 +179,25 @@ export default function VideoPlayerPage() {
 
   const isCompleted = !!progress?.completed_at;
   const allowMarkComplete = video.allow_mark_complete ?? true;
+  const duration = video.duration_seconds || 0;
+  const hasDuration = duration > 0;
+  const watched = Math.min(watchedSeconds, hasDuration ? duration : watchedSeconds);
+  const remaining = hasDuration ? Math.max(0, duration - watched) : 0;
+  const meetsDurationGate = hasDuration ? watched >= duration : true;
+
+  const fmtTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  // Auto-complete once the user has been on the page for the full duration
+  useEffect(() => {
+    if (!isCompleted && hasDuration && meetsDurationGate && allowMarkComplete) {
+      markComplete();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meetsDurationGate]);
 
   return (
     <Layout>
@@ -168,8 +210,14 @@ export default function VideoPlayerPage() {
             </Link>
           </Button>
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1">
+            <div className="flex items-center gap-3 mb-1 flex-wrap">
               <h1 className="text-2xl font-bold tracking-tight">{video.title}</h1>
+              {hasDuration && (
+                <Badge variant="outline" className="gap-1">
+                  <Clock className="h-3 w-3" />
+                  {fmtTime(duration)}
+                </Badge>
+              )}
               {isCompleted && (
                 <Badge variant="secondary" className="bg-brand-lime/20 text-brand-lime">
                   <CheckCircle className="h-3 w-3 mr-1" />
@@ -197,18 +245,30 @@ export default function VideoPlayerPage() {
         </Card>
 
         {/* Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {progress && (
-              <>
-                <Clock className="h-4 w-4" />
-                <span>{progress.percent_complete}% watched</span>
-              </>
+            <Clock className="h-4 w-4" />
+            {hasDuration ? (
+              <span>
+                {fmtTime(watched)} / {fmtTime(duration)} watched
+                {!meetsDurationGate && !isCompleted && (
+                  <span className="ml-2 text-xs">
+                    ({fmtTime(remaining)} remaining until you can mark complete)
+                  </span>
+                )}
+              </span>
+            ) : (
+              progress && <span>{progress.percent_complete}% watched</span>
             )}
           </div>
           <div className="flex gap-3">
             {allowMarkComplete && !isCompleted && (
-              <Button variant="outline" onClick={markComplete}>
+              <Button
+                variant="outline"
+                onClick={markComplete}
+                disabled={!meetsDurationGate}
+                title={!meetsDurationGate ? 'Watch the full video to enable this' : undefined}
+              >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Mark as Complete
               </Button>

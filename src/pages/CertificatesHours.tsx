@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-import { Award, Clock, Plus, Trash2, Download, Calendar, FileText, TrendingUp, Target, Pencil, RefreshCw } from 'lucide-react';
+import { Award, Clock, Plus, Trash2, Download, Calendar, FileText, TrendingUp, Target, Pencil, RefreshCw, Printer } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { UpdateCertificateDialog } from '@/components/UpdateCertificateDialog';
 import { PreviousCertificateAccordion } from '@/components/PreviousCertificateAccordion';
@@ -49,8 +49,12 @@ interface TrackCertificate {
   id: string;
   user_id: string;
   track_title: string;
+  module_title?: string | null;
   hours_earned: number;
   issued_at: string;
+  certificate_number?: string | null;
+  expiry_date?: string | null;
+  source?: 'track' | 'module';
 }
 
 interface UnifiedHoursEntry {
@@ -121,7 +125,7 @@ export default function CertificatesHours() {
 
   const fetchData = async () => {
     try {
-      const [certRes, hoursRes, goalRes, trackCertRes] = await Promise.all([
+      const [certRes, hoursRes, goalRes, trackCertRes, moduleCertRes] = await Promise.all([
         supabase
           .from('staff_certificates')
           .select('*')
@@ -140,14 +144,21 @@ export default function CertificatesHours() {
           .maybeSingle(),
         supabase
           .from('track_certificates')
-          .select('id, user_id, track_title, hours_earned, issued_at')
+          .select('id, user_id, track_title, hours_earned, issued_at, certificate_number, expiry_date')
+          .eq('user_id', user!.id)
+          .order('issued_at', { ascending: false }),
+        supabase
+          .from('module_certificates')
+          .select('id, user_id, track_title, module_title, hours_earned, issued_at, certificate_number, expiry_date')
           .eq('user_id', user!.id)
           .order('issued_at', { ascending: false }),
       ]);
 
       setCertificates((certRes.data || []) as Certificate[]);
       setHoursLog((hoursRes.data || []) as HoursLog[]);
-      setTrackCertificates((trackCertRes.data || []) as TrackCertificate[]);
+      const tracks = ((trackCertRes.data || []) as any[]).map((t) => ({ ...t, source: 'track' as const }));
+      const mods = ((moduleCertRes.data || []) as any[]).map((m) => ({ ...m, source: 'module' as const }));
+      setTrackCertificates([...tracks, ...mods] as TrackCertificate[]);
       setTrainingGoal(goalRes.data as TrainingGoal | null);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -444,7 +455,11 @@ export default function CertificatesHours() {
 
           {/* Certificates Tab */}
           <TabsContent value="certificates" className="space-y-6">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => window.open('/certificates/print', '_blank')}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print Batch Report
+              </Button>
               <Dialog open={certDialogOpen} onOpenChange={(open) => { if (!open) resetCertForm(); else setCertDialogOpen(true); }}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25">
@@ -568,7 +583,7 @@ export default function CertificatesHours() {
               <CardContent>
                 {isLoading ? (
                   <p className="text-muted-foreground">Loading...</p>
-                ) : certificates.length === 0 ? (
+                ) : certificates.length === 0 && trackCertificates.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="mx-auto w-16 h-16 rounded-full bg-brand-green/20 flex items-center justify-center mb-4">
                       <Award className="h-8 w-8 text-brand-green" />
@@ -669,6 +684,51 @@ export default function CertificatesHours() {
                           </TableCell>
                         </TableRow>
                         </FragmentRow>
+                      ))}
+                      {trackCertificates.map((tc) => (
+                        <TableRow key={`earned-${tc.id}`} className="hover:bg-accent/30">
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{tc.module_title || tc.track_title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {tc.certificate_number ? `#${tc.certificate_number} • ` : ''}
+                                Earned from {tc.source === 'module' ? 'module' : 'training track'}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                              {tc.source === 'module' ? 'Module' : 'Training Track'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{format(new Date(tc.issued_at), 'MMM d, yyyy')}</TableCell>
+                          <TableCell>
+                            {tc.expiry_date ? (
+                              <span className={
+                                isExpired(tc.expiry_date)
+                                  ? 'text-destructive font-medium'
+                                  : isExpiringSoon(tc.expiry_date)
+                                    ? 'text-orange-500 font-medium'
+                                    : ''
+                              }>
+                                {format(new Date(tc.expiry_date), 'MMM d, yyyy')}
+                              </span>
+                            ) : (
+                              <Badge variant="secondary">No expiry</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {tc.hours_earned ? <Badge variant="outline">{Number(tc.hours_earned).toFixed(1)}h</Badge> : '—'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" asChild>
+                              <Link to={`/certificate/${tc.id}`}>
+                                <Award className="h-3 w-3 mr-1" />
+                                View
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
                       ))}
                     </TableBody>
                   </Table>

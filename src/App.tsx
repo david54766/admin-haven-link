@@ -31,6 +31,7 @@ import QuizPlayerPage from "./pages/QuizPlayer";
 import HomeworkSubmissionPage from "./pages/HomeworkSubmission";
 import Documents from "./pages/Documents";
 import CertificatesHours from "./pages/CertificatesHours";
+import CertificatesBatchPrint from "./pages/CertificatesBatchPrint";
 import CertificateFileViewer from "./pages/CertificateFileViewer";
 import Reflections from "./pages/Reflections";
 import Checklists from "./pages/Checklists";
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/certificate-file/:certificateId" element={<ProtectedRoute><CertificateFileViewer /></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/certificates" element={<ProtectedRoute><CertificatesHours /></ProtectedRoute>} />
+            <Route path="/certificates/print" element={<ProtectedRoute><CertificatesBatchPrint /></ProtectedRoute>} />
             <Route path="/reflections" element={<ProtectedRoute><Reflections /></ProtectedRoute>} />
             <Route path="/checklists" element={<ProtectedRoute><Checklists /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><StaffCalendar /></ProtectedRoute>} />
