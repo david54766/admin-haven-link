@@ -455,7 +455,11 @@ export default function CertificatesHours() {
 
           {/* Certificates Tab */}
           <TabsContent value="certificates" className="space-y-6">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => window.open('/certificates/print', '_blank')}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print Batch Report
+              </Button>
               <Dialog open={certDialogOpen} onOpenChange={(open) => { if (!open) resetCertForm(); else setCertDialogOpen(true); }}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25">
