@@ -822,6 +822,16 @@ export default function AdminCertificatesHours() {
                               ) : null}
                               <Button
                                 size="sm"
+                                variant="ghost"
+                                className="text-xs"
+                                onClick={() => window.open(`/certificates/print?userIds=${cert.user_id}`, '_blank')}
+                                title="Download PDF for this staff member"
+                              >
+                                <Printer className="h-3 w-3 mr-1" />
+                                PDF
+                              </Button>
+                              <Button
+                                size="sm"
                                 variant="outline"
                                 className="text-xs"
                                 onClick={() => { setUpdatingCert(cert); setUpdateDialogOpen(true); }}
