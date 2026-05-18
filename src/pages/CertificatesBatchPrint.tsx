@@ -75,16 +75,21 @@ export default function CertificatesBatchPrint() {
   const certRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const coverRef = useRef<HTMLDivElement | null>(null);
 
+  const userIdsParam = new URLSearchParams(window.location.search).get('userIds');
+  const userIds = userIdsParam ? userIdsParam.split(',').filter(Boolean) : null;
+
   useEffect(() => {
     if (user) void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const load = async () => {
     try {
+      const targetIds = userIds && userIds.length ? userIds : [user!.id];
       const [sc, tc, mc] = await Promise.all([
-        supabase.from('staff_certificates').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }),
-        supabase.from('track_certificates').select('*').eq('user_id', user!.id).order('issued_at', { ascending: false }),
-        supabase.from('module_certificates').select('*').eq('user_id', user!.id).order('issued_at', { ascending: false }),
+        supabase.from('staff_certificates').select('*').in('user_id', targetIds).order('created_at', { ascending: false }),
+        supabase.from('track_certificates').select('*').in('user_id', targetIds).order('issued_at', { ascending: false }),
+        supabase.from('module_certificates').select('*').in('user_id', targetIds).order('issued_at', { ascending: false }),
       ]);
 
       const staff = (sc.data || []) as StaffCert[];
