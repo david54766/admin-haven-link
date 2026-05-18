@@ -685,6 +685,51 @@ export default function CertificatesHours() {
                         </TableRow>
                         </FragmentRow>
                       ))}
+                      {trackCertificates.map((tc) => (
+                        <TableRow key={`earned-${tc.id}`} className="hover:bg-accent/30">
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{tc.module_title || tc.track_title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {tc.certificate_number ? `#${tc.certificate_number} • ` : ''}
+                                Earned from {tc.source === 'module' ? 'module' : 'training track'}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                              {tc.source === 'module' ? 'Module' : 'Training Track'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{format(new Date(tc.issued_at), 'MMM d, yyyy')}</TableCell>
+                          <TableCell>
+                            {tc.expiry_date ? (
+                              <span className={
+                                isExpired(tc.expiry_date)
+                                  ? 'text-destructive font-medium'
+                                  : isExpiringSoon(tc.expiry_date)
+                                    ? 'text-orange-500 font-medium'
+                                    : ''
+                              }>
+                                {format(new Date(tc.expiry_date), 'MMM d, yyyy')}
+                              </span>
+                            ) : (
+                              <Badge variant="secondary">No expiry</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {tc.hours_earned ? <Badge variant="outline">{Number(tc.hours_earned).toFixed(1)}h</Badge> : '—'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" asChild>
+                              <Link to={`/certificate/${tc.id}`}>
+                                <Award className="h-3 w-3 mr-1" />
+                                View
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 )}
