@@ -90,6 +90,7 @@ const App = () => (
             <Route path="/certificate-file/:certificateId" element={<ProtectedRoute><CertificateFileViewer /></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/certificates" element={<ProtectedRoute><CertificatesHours /></ProtectedRoute>} />
+            <Route path="/certificates/print" element={<ProtectedRoute><CertificatesBatchPrint /></ProtectedRoute>} />
             <Route path="/reflections" element={<ProtectedRoute><Reflections /></ProtectedRoute>} />
             <Route path="/checklists" element={<ProtectedRoute><Checklists /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><StaffCalendar /></ProtectedRoute>} />
