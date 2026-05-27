@@ -152,6 +152,23 @@ export default function VideoPlayerPage() {
     }
   };
 
+  const isCompleted = !!progress?.completed_at;
+  const allowMarkComplete = video?.allow_mark_complete ?? true;
+  const duration = video?.duration_seconds || 0;
+  const hasDuration = duration > 0;
+  const watched = Math.min(watchedSeconds, hasDuration ? duration : watchedSeconds);
+  const remaining = hasDuration ? Math.max(0, duration - watched) : 0;
+  const meetsDurationGate = hasDuration ? watched >= duration : true;
+
+  // Auto-complete once the user has been on the page for the full duration.
+  // IMPORTANT: keep this hook above any early returns to preserve hook order.
+  useEffect(() => {
+    if (video && !isCompleted && hasDuration && meetsDurationGate && allowMarkComplete) {
+      markComplete();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meetsDurationGate, video]);
+
   if (isLoading) {
     return (
       <Layout>
@@ -177,27 +194,11 @@ export default function VideoPlayerPage() {
     );
   }
 
-  const isCompleted = !!progress?.completed_at;
-  const allowMarkComplete = video.allow_mark_complete ?? true;
-  const duration = video.duration_seconds || 0;
-  const hasDuration = duration > 0;
-  const watched = Math.min(watchedSeconds, hasDuration ? duration : watchedSeconds);
-  const remaining = hasDuration ? Math.max(0, duration - watched) : 0;
-  const meetsDurationGate = hasDuration ? watched >= duration : true;
-
   const fmtTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
-
-  // Auto-complete once the user has been on the page for the full duration
-  useEffect(() => {
-    if (!isCompleted && hasDuration && meetsDurationGate && allowMarkComplete) {
-      markComplete();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meetsDurationGate]);
 
   return (
     <Layout>
