@@ -47,10 +47,15 @@ export default function Dashboard() {
   const { profile, user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect admins to /admin on initial login, but allow toggling to staff view
+  // Redirect admins to /admin on initial login, but allow toggling to staff view.
+  // Persist the toggle in sessionStorage so subsequent navigations don't bounce back.
   const routerLocation = useLocation();
   useEffect(() => {
-    if (isAdmin && !routerLocation.state?.fromToggle) {
+    if (routerLocation.state?.fromToggle) {
+      sessionStorage.setItem('staffViewToggled', '1');
+    }
+    const staying = sessionStorage.getItem('staffViewToggled') === '1';
+    if (isAdmin && !routerLocation.state?.fromToggle && !staying) {
       navigate('/admin', { replace: true });
     }
   }, [isAdmin, navigate, routerLocation.state]);
