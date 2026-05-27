@@ -165,6 +165,10 @@ export function Layout({ children }: LayoutProps) {
                       <Link 
                         to={isOnAdminRoute ? "/dashboard" : "/admin"} 
                         state={isOnAdminRoute ? { fromToggle: true } : undefined}
+                        onClick={() => {
+                          if (isOnAdminRoute) sessionStorage.setItem('staffViewToggled', '1');
+                          else sessionStorage.removeItem('staffViewToggled');
+                        }}
                         className="flex items-center"
                       >
                         {isOnAdminRoute ? (
