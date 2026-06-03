@@ -51,8 +51,37 @@ export default function Training() {
   useEffect(() => {
     if (user) {
       fetchTrainingData();
+      backfillCertificates();
     }
   }, [user]);
+
+  // Auto-issue any certificates for tracks/modules the user has already completed.
+  // Runs once per session; safe to re-run (server skips users who already have certs).
+  const backfillCertificates = async () => {
+    if (!user) return;
+    const key = `retroactive-certs-run:${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+    try {
+      const { error } = await supabase.functions.invoke('issue-retroactive-certificates', {
+        body: {},
+      });
+      if (error) {
+        console.error('Retroactive cert backfill error:', error);
+        return;
+      }
+      // Refresh certificates list so newly-issued ones appear
+      const { data: certsData } = await supabase
+        .from('track_certificates')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('issued_at', { ascending: false });
+      if (certsData) setCertificates(certsData as TrackCertificateData[]);
+    } catch (e) {
+      console.error('Retroactive cert backfill failed:', e);
+    }
+  };
+
 
   const fetchTrainingData = async () => {
     try {
