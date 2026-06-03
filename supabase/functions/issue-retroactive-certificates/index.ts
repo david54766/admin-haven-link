@@ -227,12 +227,19 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: user.id });
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
 
     const body = await req.json().catch(() => ({}));
-    const { track_id, tenant_id } = body || {};
+    let { track_id, tenant_id } = body || {};
+
+    // Non-admins may only backfill their own tenant (no track_id override).
+    if (!isAdmin) {
+      const { data: userTenant } = await supabase.rpc("get_user_tenant_id", { _user_id: user.id });
+      if (!userTenant) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      tenant_id = userTenant;
+      track_id = undefined;
+    }
 
     let tracks: any[] = [];
     let modules: any[] = [];
