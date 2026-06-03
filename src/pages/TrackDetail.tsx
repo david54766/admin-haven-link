@@ -408,7 +408,11 @@ export default function TrackDetail() {
         trackId: track.id,
         trackTitle: track.title,
       });
-      // Issue certificate if enabled
+    }
+
+    // Issue certificate whenever the track is complete and no cert exists yet.
+    // issueCertificate() guards on existingCertificateId, so re-runs are safe.
+    if (isCurrentlyComplete && !existingCertificateId) {
       issueCertificate();
     }
 
