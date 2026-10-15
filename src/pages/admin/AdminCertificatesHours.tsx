@@ -140,8 +140,7 @@ export default function AdminCertificatesHours() {
           .order('date', { ascending: false }),
         supabase
           .from('profiles')
-          .select('user_id, full_name, email')
-          .eq('status', 'approved'),
+          .select('user_id, full_name, email'),
         supabase
           .from('staff_training_goals')
           .select('*')
