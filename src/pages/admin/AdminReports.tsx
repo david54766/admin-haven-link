@@ -13,6 +13,7 @@ import { ReportsOverview } from '@/components/admin/ReportsOverview';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+import { computeTrackProgress } from '@/lib/trackProgress';
 import { useComplianceSettings } from '@/hooks/useComplianceSettings';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -50,6 +51,7 @@ interface TrackCompletionData {
   track_id: string;
   track_title: string;
   progress: number;
+  missing?: { module: string; title: string; type: string; pendingReview?: boolean }[];
   total_items: number;
   completed_items: number;
   assigned_at: string;
@@ -261,75 +263,18 @@ export default function AdminReports() {
         const track = assignment.track as any;
         if (!track?.modules) continue;
 
-        let totalItems = 0;
-        let completedItems = 0;
-
-        for (const module of track.modules) {
-          // Count required videos
-          const requiredVideos = (module.videos || []).filter((v: any) => v.is_required);
-          totalItems += requiredVideos.length;
-          requiredVideos.forEach((video: any) => {
-            const vp = (videoProgress || []).find((p) => p.video_id === video.id && p.user_id === user.user_id);
-            if (vp?.completed_at) completedItems++;
-          });
-
-          // Count required presentations
-          const requiredPresentations = (module.module_presentations || []).filter((p: any) => p.is_required);
-          totalItems += requiredPresentations.length;
-          requiredPresentations.forEach((pres: any) => {
-            const pp = (presentationProgress || []).find((p) => p.presentation_id === pres.id && p.user_id === user.user_id);
-            if (pp?.completed_at) completedItems++;
-          });
-
-          // Count required documents
-          const requiredDocuments = (module.module_documents || []).filter((d: any) => d.is_required);
-          totalItems += requiredDocuments.length;
-          requiredDocuments.forEach((doc: any) => {
-            const dp = (documentProgress || []).find((d) => d.document_id === doc.id && d.user_id === user.user_id);
-            if (dp?.completed_at) completedItems++;
-          });
-
-          // Count required quizzes
-          const requiredQuizzes = (module.quizzes || []).filter((q: any) => q.is_required);
-          totalItems += requiredQuizzes.length;
-          requiredQuizzes.forEach((quiz: any) => {
-            const passed = (quizAttempts || []).some((qa) => qa.quiz_id === quiz.id && qa.user_id === user.user_id && qa.passed);
-            if (passed) completedItems++;
-          });
-
-          // Count required homework
-          const requiredHomework = (module.homework_assignments || []).filter((h: any) => h.is_required);
-          totalItems += requiredHomework.length;
-          requiredHomework.forEach((hw: any) => {
-            const approved = (homeworkWithProfiles || []).some(
-              (hs) => hs.homework_id === hw.id && hs.user_id === user.user_id && hs.reviewed_status === 'approved'
-            );
-            if (approved) completedItems++;
-          });
-
-          // Count required external trainings
-          const requiredExtTrainings = (module.module_external_trainings || []).filter((et: any) => et.is_required);
-          totalItems += requiredExtTrainings.length;
-          requiredExtTrainings.forEach((et: any) => {
-            const submissions = (externalTrainingSubmissions || []).filter(
-              (s: any) => s.external_training_id === et.id && s.user_id === user.user_id
-            );
-            const isComplete = et.requires_certificate
-              ? submissions.some((s: any) => s.status === 'approved')
-              : submissions.length > 0;
-            if (isComplete) completedItems++;
-          });
-
-          // Count required lessons
-          const requiredLessons = (module.module_lessons || []).filter((l: any) => l.is_required);
-          totalItems += requiredLessons.length;
-          requiredLessons.forEach((lesson: any) => {
-            const lp = (lessonProgress || []).find(
-              (p: any) => p.lesson_id === lesson.id && p.user_id === user.user_id
-            );
-            if (lp?.completed_at) completedItems++;
-          });
-        }
+        const uid = user.user_id;
+        const result = computeTrackProgress(track.modules, {
+          videoProgress: (videoProgress || []).filter((x: any) => x.user_id === uid) as any,
+          presentationProgress: (presentationProgress || []).filter((x: any) => x.user_id === uid) as any,
+          documentProgress: (documentProgress || []).filter((x: any) => x.user_id === uid) as any,
+          lessonProgress: (lessonProgress || []).filter((x: any) => x.user_id === uid) as any,
+          quizAttempts: (quizAttempts || []).filter((x: any) => x.user_id === uid) as any,
+          homeworkSubmissions: (homeworkWithProfiles || []).filter((x: any) => x.user_id === uid) as any,
+          externalSubmissions: (externalTrainingSubmissions || []).filter((x: any) => x.user_id === uid) as any,
+        });
+        const totalItems = result.total;
+        const completedItems = result.completed;
 
         trackCompletion.push({
           user_id: user.user_id,
@@ -342,6 +287,7 @@ export default function AdminReports() {
           total_items: totalItems,
           completed_items: completedItems,
           assigned_at: assignment.assigned_at,
+          missing: result.missing,
         });
       }
 
@@ -717,6 +663,15 @@ export default function AdminReports() {
                             </TableCell>
                             <TableCell className="text-center">
                               {item.completed_items}/{item.total_items}
+                              {item.missing && item.missing.length > 0 && (
+                                <div className="mt-1 space-y-0.5 text-left">
+                                  {item.missing.map((m, i) => (
+                                    <p key={i} className="text-xs text-muted-foreground">
+                                      Left: {m.title} ({m.type}){m.pendingReview ? ' – awaiting admin approval' : ''}
+                                    </p>
+                                  ))}
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell>
                               {item.progress === 100 ? (

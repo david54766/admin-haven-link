@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { computeTrackProgress } from '@/lib/trackProgress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraduationCap, BookOpen, PlayCircle, FileText, Award } from 'lucide-react';
 import { StaffTrackAssignment, TrainingTrack, Module, Video, Quiz, HomeworkAssignment, VideoProgress, QuizAttempt, HomeworkSubmission } from '@/types/database';
@@ -96,7 +97,11 @@ export default function Training() {
               *,
               videos(*),
               quizzes(*),
-              homework_assignments(*)
+              homework_assignments(*),
+              module_presentations(*),
+              module_documents(*),
+              module_external_trainings(*),
+              module_lessons(*)
             )
           )
         `)
@@ -124,10 +129,14 @@ export default function Training() {
       }
 
       // Fetch user's progress data
-      const [videoRes, quizRes, homeworkRes] = await Promise.all([
+      const [videoRes, quizRes, homeworkRes, presRes, docRes, lessonRes, extRes] = await Promise.all([
         supabase.from('video_progress').select('*').eq('user_id', user!.id),
         supabase.from('quiz_attempts').select('*').eq('user_id', user!.id),
         supabase.from('homework_submissions').select('*').eq('user_id', user!.id),
+        supabase.from('presentation_progress').select('presentation_id, completed_at').eq('user_id', user!.id),
+        supabase.from('document_progress').select('document_id, completed_at').eq('user_id', user!.id),
+        supabase.from('lesson_progress').select('lesson_id, completed_at').eq('user_id', user!.id),
+        supabase.from('external_training_submissions').select('external_training_id, status').eq('user_id', user!.id),
       ]);
 
       const videoProgressData = (videoRes.data || []) as VideoProgress[];
@@ -171,38 +180,15 @@ export default function Training() {
           continue;
         }
 
-        let totalItems = 0;
-        let completedItems = 0;
-
-        track.modules.forEach((module) => {
-          // Count required videos
-          const requiredVideos = module.videos?.filter((v) => v.is_required) || [];
-          totalItems += requiredVideos.length;
-          requiredVideos.forEach((video) => {
-            const vp = videoProgressData.find((p) => p.video_id === video.id);
-            if (vp?.completed_at) completedItems++;
-          });
-
-          // Count required quizzes
-          const requiredQuizzes = module.quizzes?.filter((q) => q.is_required) || [];
-          totalItems += requiredQuizzes.length;
-          requiredQuizzes.forEach((quiz) => {
-            const passed = quizAttemptsData.some((qa) => qa.quiz_id === quiz.id && qa.passed);
-            if (passed) completedItems++;
-          });
-
-          // Count required homework
-          const requiredHomework = module.homework_assignments?.filter((h) => h.is_required) || [];
-          totalItems += requiredHomework.length;
-          requiredHomework.forEach((hw) => {
-            const approved = homeworkSubmissionsData.some(
-              (hs) => hs.homework_id === hw.id && hs.reviewed_status === 'approved'
-            );
-            if (approved) completedItems++;
-          });
-        });
-
-        progress[assignment.track_id] = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+        progress[assignment.track_id] = computeTrackProgress(track.modules as any[], {
+          videoProgress: videoProgressData as any,
+          quizAttempts: quizAttemptsData as any,
+          homeworkSubmissions: homeworkSubmissionsData as any,
+          presentationProgress: (presRes.data || []) as any,
+          documentProgress: (docRes.data || []) as any,
+          lessonProgress: (lessonRes.data || []) as any,
+          externalSubmissions: (extRes.data || []) as any,
+        }).percent;
       }
       setTrackProgress(progress);
     } catch (error) {

@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import { HoursTimeFilter, TimePreset } from '@/components/admin/HoursTimeFilter';
 import { UpdateCertificateDialog } from '@/components/UpdateCertificateDialog';
 import { PreviousCertificateAccordion } from '@/components/PreviousCertificateAccordion';
+import { StaffCertificateDetail } from '@/components/admin/StaffCertificateDetail';
 
 interface Certificate {
   id: string;
@@ -121,6 +122,8 @@ export default function AdminCertificatesHours() {
   const [staffList, setStaffList] = useState<{ user_id: string; full_name: string; email: string }[]>([]);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [updatingCert, setUpdatingCert] = useState<Certificate | null>(null);
+  const [detailUser, setDetailUser] = useState<{ user_id: string; full_name?: string; email?: string } | null>(null);
+  const [inHouseCerts, setInHouseCerts] = useState<any[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -129,7 +132,7 @@ export default function AdminCertificatesHours() {
   const fetchData = async () => {
     try {
       // Fetch all data in parallel
-      const [certRes, hoursRes, profilesRes, goalsRes, trackCertsRes] = await Promise.all([
+      const [certRes, hoursRes, profilesRes, goalsRes, trackCertsRes, moduleCertsRes] = await Promise.all([
         supabase
           .from('staff_certificates')
           .select('*')
@@ -147,7 +150,10 @@ export default function AdminCertificatesHours() {
           .eq('year', currentYear),
         supabase
           .from('track_certificates')
-          .select('id, user_id, track_title, hours_earned, issued_at'),
+          .select('id, user_id, track_title, hours_earned, issued_at, certificate_number, expiry_date'),
+        supabase
+          .from('module_certificates')
+          .select('id, user_id, track_title, module_title, hours_earned, issued_at, certificate_number, expiry_date'),
       ]);
 
       if (certRes.error) throw certRes.error;
@@ -158,12 +164,18 @@ export default function AdminCertificatesHours() {
       const profiles = profilesRes.data || [];
       const goalsData = goalsRes.data || [];
       const trackCertsData = trackCertsRes.data || [];
+      const moduleCertsData = moduleCertsRes.data || [];
 
       const goalsMap = new Map(goalsData.map((g) => [g.user_id, g]));
       setTrainingGoals(goalsData as TrainingGoal[]);
 
       const profileMap = new Map(profiles.map((p) => [p.user_id, p]));
       setStaffList(profiles.map(p => ({ user_id: p.user_id, full_name: p.full_name, email: p.email })));
+
+      setInHouseCerts([
+        ...trackCertsData.map((c: any) => ({ ...c, title: c.track_title, kind: 'Training track' })),
+        ...moduleCertsData.map((c: any) => ({ ...c, title: c.module_title, kind: 'Module' })),
+      ].map((c) => ({ ...c, profile: profileMap.get(c.user_id) })).sort((a, b) => b.issued_at.localeCompare(a.issued_at)));
 
       // Enrich certificates with profile data
       const enrichedCerts = certData.map((cert) => ({
@@ -427,6 +439,11 @@ export default function AdminCertificatesHours() {
   const expiredCount = certificates.filter((c) => isExpired(c.expiry_date)).length;
   const expiringSoonCount = certificates.filter((c) => isExpiringSoon(c.expiry_date)).length;
   const totalHoursLogged = hoursSummary.reduce((sum, s) => sum + s.total_hours, 0);
+
+  const filteredInHouse = inHouseCerts.filter((c) => {
+    const search = searchTerm.toLowerCase();
+    return !search || c.profile?.full_name?.toLowerCase().includes(search) || c.profile?.email?.toLowerCase().includes(search) || c.title?.toLowerCase().includes(search);
+  });
 
   const filteredCertificates = certificates
     .filter((cert) => {
@@ -761,7 +778,7 @@ export default function AdminCertificatesHours() {
               <CardContent>
                 {isLoading ? (
                   <p className="text-muted-foreground">Loading...</p>
-                ) : filteredCertificates.length === 0 ? (
+                ) : filteredCertificates.length === 0 && filteredInHouse.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8">No certificates found.</p>
                 ) : (
                   <Table>
@@ -782,7 +799,7 @@ export default function AdminCertificatesHours() {
                         <TableRow>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{cert.profile?.full_name || 'Unknown'}</p>
+                              <button type="button" className="font-medium hover:underline text-left" onClick={() => setDetailUser({ user_id: cert.user_id, ...cert.profile })}>{cert.profile?.full_name || 'Unknown'}</button>
                               <p className="text-xs text-muted-foreground">{cert.profile?.email}</p>
                             </div>
                           </TableCell>
@@ -859,6 +876,31 @@ export default function AdminCertificatesHours() {
                           </TableCell>
                         </TableRow>
                         </FragmentRow>
+                      ))}
+                    {filteredInHouse.map((c) => (
+                        <TableRow key={`inhouse-${c.id}`}>
+                          <TableCell>
+                            <div>
+                              <button type="button" className="font-medium hover:underline text-left" onClick={() => setDetailUser({ user_id: c.user_id, ...c.profile })}>{c.profile?.full_name || 'Unknown'}</button>
+                              <p className="text-xs text-muted-foreground">{c.profile?.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <p className="font-medium">{c.title}</p>
+                            <p className="text-xs text-muted-foreground">{c.certificate_number ? `#${c.certificate_number} • ` : ''}{c.kind}</p>
+                          </TableCell>
+                          <TableCell><Badge variant="secondary">In-house</Badge></TableCell>
+                          <TableCell>{format(new Date(c.issued_at), 'MMM d, yyyy')}</TableCell>
+                          <TableCell>{c.expiry_date ? format(new Date(c.expiry_date), 'MMM d, yyyy') : '—'}</TableCell>
+                          <TableCell>
+                            {c.expiry_date && new Date(c.expiry_date) < new Date() ? <Badge variant="destructive">Expired</Badge> : <Badge variant="outline">Earned</Badge>}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" asChild>
+                              <Link to={`/certificate/${c.id}`} target="_blank"><Award className="h-3 w-3 mr-1" />View</Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
                       ))}
                     </TableBody>
                   </Table>
@@ -1013,7 +1055,7 @@ export default function AdminCertificatesHours() {
                         <TableRow key={summary.user_id}>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{summary.full_name}</p>
+                              <button type="button" className="font-medium hover:underline text-left" onClick={() => setDetailUser(summary)}>{summary.full_name}</button>
                               <p className="text-xs text-muted-foreground">{summary.email}</p>
                             </div>
                           </TableCell>
@@ -1104,7 +1146,7 @@ export default function AdminCertificatesHours() {
                           <TableRow key={summary.user_id}>
                             <TableCell>
                               <div>
-                                <p className="font-medium">{summary.full_name}</p>
+                                <button type="button" className="font-medium hover:underline text-left" onClick={() => setDetailUser(summary)}>{summary.full_name}</button>
                                 <p className="text-xs text-muted-foreground">{summary.email}</p>
                               </div>
                             </TableCell>
@@ -1212,6 +1254,12 @@ export default function AdminCertificatesHours() {
           onOpenChange={setUpdateDialogOpen}
           certificate={updatingCert}
           onUpdated={fetchData}
+        />
+        <StaffCertificateDetail
+          userId={detailUser?.user_id ?? null}
+          name={detailUser?.full_name}
+          email={detailUser?.email}
+          onOpenChange={(o) => { if (!o) setDetailUser(null); }}
         />
       </div>
     </Layout>
