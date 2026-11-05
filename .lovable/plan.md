@@ -1,46 +1,22 @@
-## Problem
+# Fix Miracle Grow's 3 certificate issues (applies to every organization)
 
-Completed tracks aren't producing certificates in the staff Certificates section.
+## 1. Click a staff member to see all their certificates
+- In Admin → Certificates & Hours, make each staff name clickable.
+- It opens a staff detail panel with:
+  - **Completed:** uploaded certificates, in-house track certificates and in-house module certificates, each with View / PDF.
+  - **Not completed yet:** required trainings from their assigned tracks that have no certificate, plus any expired certificates.
+  - A summary at the top (hours, how many completed vs. remaining) and a "Download PDF Batch" button for that person.
 
-**Root cause** in `src/pages/TrackDetail.tsx`: the auto-issue effect only fires on a transition from "not complete" → "complete" during a single page visit. The guard is:
+## 2. Staff shows 100%, admin shows 20/21 (95%)
+- The staff page and the admin Reports page count completed items separately, so they can disagree. One clear gap: the admin count includes hidden (inactive) modules, which staff never see.
+- First step: compare the real records for the staff member Anisa mentioned to find the exact item behind the 21st count.
+- Fix: both pages will use the same counting rule (active modules only, the same "approved" rules for homework and outside courses). The admin row will also list any missing item by name, so admins can see what's left.
 
-```ts
-previouslyCompletedRef = useRef<boolean | null>(null);  // starts null
-if (isCurrentlyComplete && previouslyCompletedRef.current === false) { issueCertificate(); }
-```
-
-Because the ref starts at `null` (not `false`), if a staff member opens a track that is *already* 100% complete (the common case for tracks completed before this code shipped, or anyone revisiting later), the condition is never true and no certificate is ever inserted into `track_certificates`. The certificate also never issues for users who completed a track but never returned to that track's page afterwards.
-
-There is also no client-side auto-issuance for module-level certificates — only the admin "retroactive" edge function handles those.
-
-## Fix
-
-### 1. `src/pages/TrackDetail.tsx` — issue whenever eligible
-
-Change the effect so it issues a certificate any time the track is 100% complete, the track has `certificate_enabled` + `instructor_name`, and no `existingCertificateId` is already set. Keep the existing completion notification on the false→true transition (so it doesn't spam on every revisit), but decouple cert issuance from the transition.
-
-`issueCertificate()` already guards on `existingCertificateId` so re-runs are safe, and the DB insert is idempotent per `(user_id, track_id)` via the existing query that loads `existingCertificateId`.
-
-### 2. Auto-backfill on the staff Training → Certificates tab
-
-In `src/pages/Training.tsx`, when the user opens the page (or switches to the `certificates` tab), call the existing `issue-retroactive-certificates` edge function scoped to that user's tenant. This catches every historical completion (tracks **and** modules) without requiring the staff member to revisit each track page.
-
-To keep this safe and cheap:
-- Only call it once per session (guard with a `sessionStorage` flag like `retroactive-certs-run:<tenantId>`).
-- Fire-and-forget; on success, refetch the certificates list so any newly-issued certs appear immediately.
-
-### 3. Edge function permission check
-
-`issue-retroactive-certificates/index.ts` currently rejects non-admins (`is_admin` check returns 403). Update it to also allow approved staff to run it **for their own tenant only** — when the caller is not an admin, force `tenant_id` to the caller's own tenant (via `get_user_tenant_id`) and ignore any `track_id` override. Admins keep full behavior.
+## 3. Admins can't see in-house certificates
+- Admins already have permission to see them. The admin page just never loads **module** certificates (it only loads track certificates), and it doesn't show both kinds in the main list.
+- Fix: load in-house module and track certificates, show them in the All Staff Certificates list with an "In-house" tag, and add a View button that opens the certificate image (the same one staff see). They'll also be included in the PDF batch.
 
 ## Technical notes
-
-- No DB schema changes needed.
-- No new tables or RLS policies — existing `track_certificates` / `module_certificates` policies already allow `user_id = auth.uid()` inserts.
-- The retroactive function already inserts both track- and module-level certificates and skips users who already have one, so repeat runs are harmless.
-
-## Files touched
-
-- `src/pages/TrackDetail.tsx` — relax auto-issue guard
-- `src/pages/Training.tsx` — call retroactive function once per session, refresh cert list
-- `supabase/functions/issue-retroactive-certificates/index.ts` — allow staff to backfill their own tenant
+- `AdminCertificatesHours.tsx`: also query `module_certificates`, merge into the list with a source tag, and add a `StaffCertificateDetail` sheet.
+- Pull the completion counting into a shared `src/lib/trackProgress.ts` that both `AdminReports.tsx` and the staff `TrackDetail`/`Training` pages use. Filter `modules.is_active`, and return the IDs of missing items.
+- No database changes needed. The existing access rules already let tenant admins read both in-house certificate tables.
