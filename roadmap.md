@@ -7,4 +7,3 @@
 ## Miracle Grow fixes (Nov 11)
 - [x] CACFP document viewer, duplicate certificate, staff certificate list, progress counting, module title on certificates, Kyarra's name
 - [ ] Correct hours for Mandated Reporter, Program Plan & Curriculum, Center-Wide Onboarding — waiting on David
-- [ ] Merge Aniaya / Brandy duplicate accounts — waiting on which email to keep
