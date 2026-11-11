@@ -20,6 +20,8 @@ interface TrackCertificateData {
   certificate_number: string;
   expiry_date: string | null;
   track_id: string;
+  module_id?: string;
+  module_title?: string;
 }
 
 export default function TrackCertificate() {
@@ -56,8 +58,26 @@ export default function TrackCertificate() {
 
       setCertificate(data as TrackCertificateData);
 
-      // Fetch template if linked
-      if (data?.track_id) {
+      // Module certificates use the module's own template when it has one
+      let moduleTemplateId: string | null = null;
+      if ((data as any)?.module_id) {
+        const { data: mod } = await supabase
+          .from('modules')
+          .select('certificate_template_id')
+          .eq('id', (data as any).module_id)
+          .maybeSingle();
+        moduleTemplateId = mod?.certificate_template_id ?? null;
+      }
+      if (moduleTemplateId) {
+        const { data: tmpl } = await supabase
+          .from('certificate_templates')
+          .select('background_image_url, text_fields')
+          .eq('id', moduleTemplateId)
+          .single();
+        if (tmpl) {
+          setTemplate({ background_image_url: tmpl.background_image_url, text_fields: (tmpl.text_fields as any) || [] });
+        }
+      } else if (data?.track_id) {
         const { data: trackData } = await supabase
           .from('training_tracks')
           .select('certificate_template_id')
@@ -149,6 +169,7 @@ export default function TrackCertificate() {
   const certData = {
     staff_name: certificate.staff_name,
     track_title: certificate.track_title,
+    module_title: certificate.module_title,
     center_name: certificate.center_name,
     instructor_name: certificate.instructor_name,
     hours_earned: certificate.hours_earned,

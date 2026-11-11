@@ -442,7 +442,7 @@ export default function AdminCertificatesHours() {
 
   const filteredInHouse = inHouseCerts.filter((c) => {
     const search = searchTerm.toLowerCase();
-    return !search || c.profile?.full_name?.toLowerCase().includes(search) || c.profile?.email?.toLowerCase().includes(search) || c.title?.toLowerCase().includes(search);
+    return !search || (c.profile?.full_name || c.staff_name)?.toLowerCase().includes(search) || c.profile?.email?.toLowerCase().includes(search) || c.title?.toLowerCase().includes(search);
   });
 
   const filteredCertificates = certificates
@@ -881,8 +881,8 @@ export default function AdminCertificatesHours() {
                         <TableRow key={`inhouse-${c.id}`}>
                           <TableCell>
                             <div>
-                              <button type="button" className="font-medium hover:underline text-left" onClick={() => setDetailUser({ user_id: c.user_id, ...c.profile })}>{c.profile?.full_name || 'Unknown'}</button>
-                              <p className="text-xs text-muted-foreground">{c.profile?.email}</p>
+                              <button type="button" className="font-medium hover:underline text-left" onClick={() => setDetailUser({ user_id: c.user_id, full_name: c.staff_name, ...c.profile })}>{c.profile?.full_name || c.staff_name || 'Unknown'}</button>
+                              <p className="text-xs text-muted-foreground">{c.profile?.email || (c.profile ? '' : 'Former staff account')}</p>
                             </div>
                           </TableCell>
                           <TableCell>

@@ -17,6 +17,7 @@ import { LessonViewer } from '@/components/training/LessonViewer';
 import { useTrackCompletionNotification } from '@/hooks/useTrackCompletionNotification';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { computeTrackProgress } from '@/lib/trackProgress';
 
 export default function TrackDetail() {
   const { trackId } = useParams();
@@ -67,7 +68,7 @@ export default function TrackDetail() {
       if (trackError) throw trackError;
 
       setTrack(trackData as TrainingTrack);
-      setModules(((trackData as TrainingTrack)?.modules || []).sort((a, b) => a.order_index - b.order_index) as Module[]);
+      setModules(((trackData as TrainingTrack)?.modules || []).filter((m: any) => m.is_active !== false).sort((a, b) => a.order_index - b.order_index) as Module[]);
 
       // Fetch user's progress and existing certificate
       const [videoRes, quizRes, homeworkRes, presentationRes, documentRes, certRes, extTrainingRes, lessonProgressRes] = await Promise.all([
@@ -282,8 +283,18 @@ export default function TrackDetail() {
       });
     });
 
-    const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-    return { percent, totalItems, completedItems, stats };
+    // Headline numbers come from the shared counter so staff and admin views always agree
+    const shared = computeTrackProgress(modules, {
+      videoProgress: Object.values(videoProgress),
+      presentationProgress: Object.values(presentationProgress),
+      documentProgress: Object.values(documentProgress),
+      lessonProgress: Object.values(lessonProgressMap),
+      quizAttempts: Object.values(quizAttempts).flat(),
+      homeworkSubmissions: Object.values(homeworkSubmissions).flat(),
+      externalSubmissions: Object.values(externalTrainingSubmissions).flat(),
+    });
+    void totalItems; void completedItems;
+    return { percent: shared.percent, totalItems: shared.total, completedItems: shared.completed, stats };
   };
 
   const trackProgress = calculateTrackProgress();
@@ -367,17 +378,7 @@ export default function TrackDetail() {
         setExistingCertificateId(cert.id);
         setShowCertDialog(true);
 
-        // Auto-add to staff_certificates
-        await supabase.from('staff_certificates').insert({
-          user_id: user.id,
-          title: `${track.title} - Completion Certificate`,
-          issuing_organization: centerName,
-          issue_date: new Date().toISOString().split('T')[0],
-          expiry_date: expiryDate,
-          hours: hoursEarned,
-          certificate_number: cert.certificate_number,
-          notes: `Auto-issued upon completing training track: ${track.title}`,
-        });
+        // In-house certificate is shown directly on the Certificates pages; no duplicate upload copy.
 
         // Auto-add training hours
         await supabase.from('staff_hours_log').insert({

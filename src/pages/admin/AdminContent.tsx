@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { courseHoursError } from '@/lib/courseHours';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CertificateTemplateEditor } from '@/components/admin/CertificateTemplateEditor';
@@ -209,6 +210,11 @@ export default function AdminContent() {
   const handleSave = async () => {
     if (!formTitle.trim()) {
       toast({ title: 'Title Required', variant: 'destructive' });
+      return;
+    }
+
+    if ((dialogType === 'track' || dialogType === 'module') && courseHoursError(formCourseHours)) {
+      toast({ title: 'Check course hours', description: courseHoursError(formCourseHours)!, variant: 'destructive' });
       return;
     }
 
@@ -719,6 +725,8 @@ export default function AdminContent() {
                           <Input
                             id="courseHours"
                             type="number"
+                            min={0.1}
+                            step={0.1}
                             value={formCourseHours ?? ''}
                             onChange={(e) => setFormCourseHours(e.target.value ? Number(e.target.value) : null)}
                             placeholder="e.g. 40"

@@ -2,6 +2,7 @@ import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { loadStorageFileAsBlobUrl } from '@/lib/storageFile';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,6 +91,7 @@ export default function CertificatesHours() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [hoursLog, setHoursLog] = useState<HoursLog[]>([]);
   const [trackCertificates, setTrackCertificates] = useState<TrackCertificate[]>([]);
+  const [outsideCerts, setOutsideCerts] = useState<{ id: string; title: string; file_url: string | null; file_name: string | null; date: string }[]>([]);
   const [trainingGoal, setTrainingGoal] = useState<TrainingGoal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const currentYear = new Date().getFullYear();
@@ -125,7 +127,7 @@ export default function CertificatesHours() {
 
   const fetchData = async () => {
     try {
-      const [certRes, hoursRes, goalRes, trackCertRes, moduleCertRes] = await Promise.all([
+      const [certRes, hoursRes, goalRes, trackCertRes, moduleCertRes, outsideRes] = await Promise.all([
         supabase
           .from('staff_certificates')
           .select('*')
@@ -152,7 +154,20 @@ export default function CertificatesHours() {
           .select('id, user_id, track_title, module_title, hours_earned, issued_at, certificate_number, expiry_date')
           .eq('user_id', user!.id)
           .order('issued_at', { ascending: false }),
+        supabase
+          .from('external_training_submissions')
+          .select('id, file_url, file_name, reviewed_at, submitted_at, module_external_trainings(title)')
+          .eq('user_id', user!.id)
+          .eq('status', 'approved')
+          .order('submitted_at', { ascending: false }),
       ]);
+      setOutsideCerts(((outsideRes.data || []) as any[]).map((r) => ({
+        id: r.id,
+        title: r.module_external_trainings?.title || r.file_name || 'Outside course certificate',
+        file_url: r.file_url,
+        file_name: r.file_name,
+        date: r.reviewed_at || r.submitted_at,
+      })));
 
       setCertificates((certRes.data || []) as Certificate[]);
       setHoursLog((hoursRes.data || []) as HoursLog[]);
@@ -164,6 +179,17 @@ export default function CertificatesHours() {
       console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openOutsideFile = async (url: string) => {
+    const win = window.open('', '_blank');
+    try {
+      const src = await loadStorageFileAsBlobUrl(url);
+      if (win) win.location.href = src; else window.open(src, '_blank');
+    } catch {
+      win?.close();
+      toast({ title: 'Could not open this certificate file', variant: 'destructive' });
     }
   };
 
@@ -576,14 +602,14 @@ export default function CertificatesHours() {
                   </div>
                   <div>
                     <CardTitle>My Certificates</CardTitle>
-                    <CardDescription>{certificates.length} certificate(s) on file</CardDescription>
+                    <CardDescription>{certificates.length + trackCertificates.length + outsideCerts.length} certificate(s) on file</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <p className="text-muted-foreground">Loading...</p>
-                ) : certificates.length === 0 && trackCertificates.length === 0 ? (
+                ) : certificates.length === 0 && trackCertificates.length === 0 && outsideCerts.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="mx-auto w-16 h-16 rounded-full bg-brand-green/20 flex items-center justify-center mb-4">
                       <Award className="h-8 w-8 text-brand-green" />
@@ -727,6 +753,28 @@ export default function CertificatesHours() {
                                 View
                               </Link>
                             </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {outsideCerts.map((oc) => (
+                        <TableRow key={`outside-${oc.id}`} className="hover:bg-accent/30">
+                          <TableCell>
+                            <p className="font-medium">{oc.title}</p>
+                            <p className="text-xs text-muted-foreground">Outside course • approved</p>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">Outside course</Badge>
+                          </TableCell>
+                          <TableCell>{oc.date ? format(new Date(oc.date), 'MMM d, yyyy') : '—'}</TableCell>
+                          <TableCell><Badge variant="secondary">No expiry</Badge></TableCell>
+                          <TableCell>—</TableCell>
+                          <TableCell className="text-right">
+                            {oc.file_url && (
+                              <Button size="sm" variant="outline" onClick={() => openOutsideFile(oc.file_url!)}>
+                                <Award className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
