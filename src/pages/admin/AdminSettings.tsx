@@ -24,6 +24,7 @@ import { useComplianceSettings, ComplianceConfig } from '@/hooks/useComplianceSe
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BackupManager } from '@/components/admin/BackupManager';
 import { CertificateRemindersSettings } from '@/components/admin/CertificateRemindersSettings';
+import { TrainingHoursSettings } from '@/components/admin/TrainingHoursSettings';
 
 export default function AdminSettings() {
   const { isAdmin } = useAuth();
@@ -767,7 +768,10 @@ export default function AdminSettings() {
 
           {/* Certificates Tab */}
           <TabsContent value="certificates">
-            <CertificateRemindersSettings />
+            <div className="space-y-6">
+              <TrainingHoursSettings />
+              <CertificateRemindersSettings />
+            </div>
           </TabsContent>
 
           {/* Organization Tab */}

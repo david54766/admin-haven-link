@@ -1,4 +1,4 @@
-import { EXTERNAL_TRAINING_HOURS, uploadedCertificateHours } from '@/lib/staffHours';
+import { uploadedCertificateHours, useHoursSettings } from '@/lib/staffHours';
 import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -89,6 +89,7 @@ interface TrainingGoal {
 export default function CertificatesHours() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const hoursSettings = useHoursSettings();
   
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [hoursLog, setHoursLog] = useState<HoursLog[]>([]);
@@ -387,7 +388,7 @@ export default function CertificatesHours() {
       .map((cert) => ({
         id: `cert-${cert.id}`,
         date: cert.issue_date || cert.created_at.split('T')[0],
-        hours: uploadedCertificateHours((cert as any).hours),
+        hours: uploadedCertificateHours((cert as any).hours, hoursSettings.uploadedCertificateDefaultHours),
         source: 'certificate' as const,
         description: `Certificate: ${cert.title}${cert.issuing_organization ? ` (${cert.issuing_organization})` : ''}`,
         category: 'Certificate',
@@ -409,7 +410,7 @@ export default function CertificatesHours() {
     ...outsideCerts.map((oc) => ({
       id: `external-${oc.id}`,
       date: (oc.date || '').split('T')[0],
-      hours: EXTERNAL_TRAINING_HOURS,
+      hours: hoursSettings.externalTrainingHours,
       source: 'certificate' as const,
       description: `Outside training: ${oc.title}`,
       category: 'Outside Training',

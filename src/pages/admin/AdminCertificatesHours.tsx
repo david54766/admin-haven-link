@@ -1,4 +1,4 @@
-import { EXTERNAL_TRAINING_HOURS, uploadedCertificateHours } from '@/lib/staffHours';
+import { uploadedCertificateHours, parseHoursSettings, HOURS_SETTINGS_KEY } from '@/lib/staffHours';
 import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -132,6 +132,9 @@ export default function AdminCertificatesHours() {
 
   const fetchData = async () => {
     try {
+      const { data: hoursRow } = await supabase.from('system_settings').select('value').eq('key', HOURS_SETTINGS_KEY).maybeSingle();
+      const hoursSettings = parseHoursSettings(hoursRow?.value);
+      const EXTERNAL_TRAINING_HOURS = hoursSettings.externalTrainingHours;
       // Fetch all data in parallel
       const [certRes, hoursRes, profilesRes, goalsRes, trackCertsRes, moduleCertsRes, externalRes] = await Promise.all([
         supabase
@@ -243,7 +246,7 @@ export default function AdminCertificatesHours() {
       // Source 2: Certificate hours (from staff_certificates with hours > 0)
       certData.forEach((cert: any) => {
         {
-          const hrs = uploadedCertificateHours(cert.hours);
+          const hrs = uploadedCertificateHours(cert.hours, hoursSettings.uploadedCertificateDefaultHours);
           const summary = summaryMap.get(cert.user_id);
           if (summary) {
             const certDate = new Date(cert.issue_date || cert.created_at);
