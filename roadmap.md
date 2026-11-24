@@ -1,5 +1,9 @@
 # Certificate verification
 
+## Hours updates and release
+- [ ] Let tenant admins update hours on each approved outside training and uploaded certificate; require hours on certificate uploads.
+- [ ] Verify saved hours appear in staff and admin totals, then publish the updates.
+
 - [x] Verify Anisa can open individual staff records and in-house certificates.
 - [x] Compare staff training, opened course, and admin report percentages.
 - [x] Correct historical training progress tenant ownership without broadening access.
