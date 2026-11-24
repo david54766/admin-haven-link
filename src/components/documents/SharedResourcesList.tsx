@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUpload } from '@/lib/notifyUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -186,6 +187,7 @@ export function SharedResourcesList({ section }: { section?: 'required' | 'share
         });
 
       if (insertError) throw insertError;
+      notifyUpload('important_document', uploadDialogResource.title, uploadFile.name);
 
       toast({ title: 'Document Submitted', description: 'Your document has been submitted successfully.' });
       setUploadDialogResource(null);

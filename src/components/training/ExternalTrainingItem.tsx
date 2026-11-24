@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Circle, Clock, ExternalLink, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUpload } from '@/lib/notifyUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ModuleExternalTraining, ExternalTrainingSubmission } from '@/types/database';
@@ -65,6 +66,7 @@ export function ExternalTrainingItem({ training, submissions, onUpdate }: Extern
         });
 
       if (error) throw error;
+      notifyUpload('external_training', training.title, file.name);
 
       toast({ title: 'Certificate uploaded successfully' });
       onUpdate();

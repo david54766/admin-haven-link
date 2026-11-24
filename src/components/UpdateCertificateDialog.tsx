@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUpload } from '@/lib/notifyUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -106,6 +107,7 @@ export function UpdateCertificateDialog({ open, onOpenChange, certificate, onUpd
         file_name: newFileName,
       }).eq('id', certificate.id);
       if (updErr) throw updErr;
+      if (file) notifyUpload('certificate', title.trim(), file.name);
 
       toast({ title: 'Certificate updated', description: 'Previous version saved to history.' });
       onUpdated();

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUpload } from '@/lib/notifyUpload';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -135,6 +136,7 @@ export default function HomeworkSubmissionPage() {
       });
 
       if (insertError) throw insertError;
+      notifyUpload('homework', homework.title, fileName || null);
 
       toast({
         title: 'Submission Successful',

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUpload } from '@/lib/notifyUpload';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -140,6 +141,7 @@ export default function Documents() {
       });
 
       if (insertError) throw insertError;
+      notifyUpload('document', uploadTitle, uploadFile.name);
 
       toast({
         title: 'Document Uploaded',

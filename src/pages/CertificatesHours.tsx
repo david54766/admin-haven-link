@@ -3,6 +3,7 @@ import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUpload } from '@/lib/notifyUpload';
 import { loadStorageFileAsBlobUrl } from '@/lib/storageFile';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -250,6 +251,7 @@ export default function CertificatesHours() {
           user_id: user!.id,
         } as any);
         if (error) throw error;
+        notifyUpload('certificate', certTitle, (certData as any).file_name);
         toast({ title: 'Certificate added successfully!' });
       }
 
