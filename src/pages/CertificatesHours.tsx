@@ -1,3 +1,4 @@
+import { EXTERNAL_TRAINING_HOURS, uploadedCertificateHours } from '@/lib/staffHours';
 import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -381,11 +382,10 @@ export default function CertificatesHours() {
     })),
     // Certificate hours
     ...certificates
-      .filter((cert) => (cert as any).hours && Number((cert as any).hours) > 0)
       .map((cert) => ({
         id: `cert-${cert.id}`,
         date: cert.issue_date || cert.created_at.split('T')[0],
-        hours: Number((cert as any).hours),
+        hours: uploadedCertificateHours((cert as any).hours),
         source: 'certificate' as const,
         description: `Certificate: ${cert.title}${cert.issuing_organization ? ` (${cert.issuing_organization})` : ''}`,
         category: 'Certificate',
@@ -403,6 +403,16 @@ export default function CertificatesHours() {
         category: 'Track Completion',
         deletable: false,
       })),
+    // Approved outside (external) trainings
+    ...outsideCerts.map((oc) => ({
+      id: `external-${oc.id}`,
+      date: (oc.date || '').split('T')[0],
+      hours: EXTERNAL_TRAINING_HOURS,
+      source: 'certificate' as const,
+      description: `Outside training: ${oc.title}`,
+      category: 'Outside Training',
+      deletable: false,
+    })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Calculate total hours from unified feed

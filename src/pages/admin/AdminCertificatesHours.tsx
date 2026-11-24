@@ -1,3 +1,4 @@
+import { EXTERNAL_TRAINING_HOURS, uploadedCertificateHours } from '@/lib/staffHours';
 import { useEffect, useState, Fragment as FragmentRow } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -132,7 +133,7 @@ export default function AdminCertificatesHours() {
   const fetchData = async () => {
     try {
       // Fetch all data in parallel
-      const [certRes, hoursRes, profilesRes, goalsRes, trackCertsRes, moduleCertsRes] = await Promise.all([
+      const [certRes, hoursRes, profilesRes, goalsRes, trackCertsRes, moduleCertsRes, externalRes] = await Promise.all([
         supabase
           .from('staff_certificates')
           .select('*')
@@ -154,6 +155,10 @@ export default function AdminCertificatesHours() {
         supabase
           .from('module_certificates')
           .select('id, user_id, track_title, module_title, hours_earned, issued_at, certificate_number, expiry_date'),
+        supabase
+          .from('external_training_submissions')
+          .select('id, user_id, reviewed_at, submitted_at')
+          .eq('status', 'approved'),
       ]);
 
       if (certRes.error) throw certRes.error;
@@ -237,24 +242,38 @@ export default function AdminCertificatesHours() {
 
       // Source 2: Certificate hours (from staff_certificates with hours > 0)
       certData.forEach((cert: any) => {
-        if (cert.hours && Number(cert.hours) > 0) {
+        {
+          const hrs = uploadedCertificateHours(cert.hours);
           const summary = summaryMap.get(cert.user_id);
           if (summary) {
             const certDate = new Date(cert.issue_date || cert.created_at);
             if (certDate >= yearStart && certDate <= yearEnd) {
-              summary.total_hours += Number(cert.hours);
-              summary.certificate_hours += Number(cert.hours);
+              summary.total_hours += hrs;
+              summary.certificate_hours += hrs;
               summary.entries_count += 1;
             }
             if (certDate >= monthStart && certDate <= monthEnd) {
-              summary.this_month_hours += Number(cert.hours);
+              summary.this_month_hours += hrs;
             }
           }
         }
       });
 
-      // Source 3: Track completion certificate hours
-      trackCertsData.forEach((tc: any) => {
+      // Source 3: Approved outside trainings (2 hours each)
+      ((externalRes.data || []) as any[]).forEach((ex) => {
+        const summary = summaryMap.get(ex.user_id);
+        if (!summary) return;
+        const d = new Date(ex.reviewed_at || ex.submitted_at);
+        if (d >= yearStart && d <= yearEnd) {
+          summary.total_hours += EXTERNAL_TRAINING_HOURS;
+          summary.certificate_hours += EXTERNAL_TRAINING_HOURS;
+          summary.entries_count += 1;
+        }
+        if (d >= monthStart && d <= monthEnd) summary.this_month_hours += EXTERNAL_TRAINING_HOURS;
+      });
+
+      // Source 4: Track and module completion certificate hours
+      [...trackCertsData, ...moduleCertsData].forEach((tc: any) => {
         if (tc.hours_earned && Number(tc.hours_earned) > 0) {
           const summary = summaryMap.get(tc.user_id);
           if (summary) {
